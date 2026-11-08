@@ -1,0 +1,101 @@
+// Prisma schema for Phase 3 (Database Expansion)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Characters & Research ──────────────────────────────────────
+model Character {
+  id              String             @id @default(uuid())
+  name            String
+  originalName    String?
+  category        String
+  universe        String?
+  franchise       String?
+  versions        CharacterVersion[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  @@index([name])
+}
+
+model CharacterVersion {
+  id          String   @id @default(uuid())
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+  versionName String
+  description String?
+
+  attributes   CharacterAttribute?
+  abilities    CharacterAbility?
+  feats        Feat[]
+  sources      ResearchSource[]
+  createdAt    DateTime @default(now())
+}
+
+model CharacterAttribute {
+  id           String  @id @default(uuid())
+  versionId    String  @unique
+  version      CharacterVersion @relation(fields: [versionId], references: [id])
+  intel        Int?
+  combat       Int?
+  strength     Int?
+  speed        Int?
+}
+
+model CharacterAbility {
+  id               String   @id @default(uuid())
+  versionId        String   @unique
+  version          CharacterVersion @relation(fields: [versionId], references: [id])
+  specialAbilities String[]
+  weaknesses       String[]
+}
+
+model Feat {
+  id        String   @id @default(uuid())
+  versionId String
+  version   CharacterVersion @relation(fields: [versionId], references: [id])
+  title     String
+  evidence  String
+  status    String   // VERIFIED, DISPUTED, UNVERIFIED
+}
+
+model ResearchSource {
+  id        String   @id @default(uuid())
+  versionId String
+  version   CharacterVersion @relation(fields: [versionId], references: [id])
+  url       String
+  type      String
+}
+
+// ── Battle & Simulations ──────────────────────────────────────
+model Battle {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  mode        String
+  config      Json
+  status      String   // PENDING, PROCESSING, COMPLETED, FAILED
+  results     SimulationResult?
+  createdAt   DateTime @default(now())
+}
+
+model SimulationResult {
+  id        String   @id @default(uuid())
+  battleId  String   @unique
+  battle    Battle   @relation(fields: [battleId], references: [id])
+  rawJson   Json
+  winner    String
+  createdAt DateTime @default(now())
+}
+
+// ── Auth & Community ──────────────────────────────────────────
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  battles       Battle[]
+  createdAt     DateTime  @default(now())
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@battle-arena/simulation-engine",
+  "version": "0.2.0",
+  "description": "Deterministic 10-scenario, 100-trial battle engine. Independent of AI.",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@battle-arena/report-engine": "workspace:*",
+    "@battle-arena/shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}

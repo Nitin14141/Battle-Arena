@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@battle-arena/shared": ["./packages/shared/src"],
+      "@battle-arena/database": ["./packages/database/src"],
+      "@battle-arena/validation": ["./packages/validation/src"],
+      "@battle-arena/character-engine": ["./packages/character-engine/src"],
+      "@battle-arena/research-engine": ["./packages/research-engine/src"],
+      "@battle-arena/ai-engine": ["./packages/ai-engine/src"],
+      "@battle-arena/battle-engine": ["./packages/battle-engine/src"],
+      "@battle-arena/simulation-engine": ["./packages/simulation-engine/src"],
+      "@battle-arena/report-engine": ["./packages/report-engine/src"],
+      "@/*": ["./apps/web/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

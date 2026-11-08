@@ -1,0 +1,27 @@
+{
+  "name": "@battle-arena/report-engine",
+  "version": "0.2.0",
+  "description": "Deterministic battle report generation from simulation output",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@battle-arena/shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "@battle-arena/database",
+  "version": "0.1.0",
+  "description": "Prisma schema and database client wrapper",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "generate": "node node_modules/prisma/build/index.js generate"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^1.6.0",
+    "@battle-arena/shared": "workspace:*",
+    "@prisma/client": "^6.0.0",
+    "next-auth": "5.0.0-beta.25"
+  },
+  "peerDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "prisma": "^6.0.0",
+    "typescript": "^5.7.0"
+  }
+}
