@@ -8,18 +8,42 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" });
 
+const siteName = "Battle Arena";
+const siteTitle = "Battle Arena — Every Universe. Every Legend. One Battlefield.";
+const siteDescription =
+  "Pit legends from every universe and era against each other. Ten battle scenarios, 100 deterministic trials, and detailed battle reports.";
+const socialImage = {
+  url: "/images/og-battle-arena.jpg",
+  width: 1200,
+  height: 630,
+  alt: "Battle Arena — a neon battle arena with two fighters facing off",
+  type: "image/jpeg",
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
+  applicationName: siteName,
   title: {
     default: "Battle Arena | Every Universe. Every Legend. One Battlefield.",
     template: "%s | Battle Arena",
   },
-  description:
-    "AI-assisted fictional and historical character battles. 10 scenarios, 100 deterministic trials, detailed reports.",
-  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
+  description: siteDescription,
+  keywords: ["Battle Arena", "character battles", "fictional battles", "historical battles", "AI battle simulator"],
+  robots: { index: true, follow: true },
   openGraph: {
-    title: "Battle Arena",
-    description: "Every Universe. Every Legend. One Battlefield.",
     type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName,
+    title: siteTitle,
+    description: siteDescription,
+    images: [socialImage],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+    images: [socialImage],
   },
 };
 
