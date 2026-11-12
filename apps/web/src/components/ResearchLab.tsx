@@ -105,7 +105,7 @@ export function ResearchLab() {
               setName(event.target.value);
               setError(null);
             }}
-            placeholder="Anyone — Mahatma Gandhi, Beyonder, Jaggu (Chhota Bheem)…"
+            placeholder="Anyone — Gandhi, Beyonder…"
             autoComplete="off"
             className="min-w-0 flex-1 rounded-xl border border-arena-border bg-black/40 px-4 py-3 text-sm text-white placeholder:text-arena-text3 focus:border-arena-blue focus:outline-none focus:ring-1 focus:ring-arena-blue"
           />

@@ -23,17 +23,17 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-arena-border/50 bg-[#05050b]/85 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5">
-        <Link href="/" className="group flex items-center gap-3" onClick={() => setOpen(false)}>
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-arena-purple to-arena-blue text-lg shadow-glow">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3.5">
+        <Link href="/" className="group flex min-w-0 shrink-0 items-center gap-2 sm:gap-3" onClick={() => setOpen(false)}>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-arena-purple to-arena-blue text-base shadow-glow sm:h-9 sm:w-9 sm:text-lg">
             ⚡
           </span>
-          <span className="font-display text-lg font-extrabold tracking-[0.18em] text-white sm:text-xl">
+          <span className="whitespace-nowrap font-display text-base font-extrabold tracking-[0.16em] text-white sm:text-xl sm:tracking-[0.18em]">
             BATTLE <span className="gradient-text">ARENA</span>
           </span>
         </Link>
 
-        <div className="hidden items-center gap-4 lg:flex xl:gap-6">
+        <div className="hidden items-center gap-4 xl:flex xl:gap-6">
           {LINKS.map((link) => (
             <Link
               key={link.href}
@@ -50,7 +50,7 @@ export function Navbar() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <Link
             href="/profile"
             className="hidden rounded-full border border-arena-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-arena-text2 transition-colors hover:border-arena-blue hover:text-white sm:block"
@@ -59,7 +59,7 @@ export function Navbar() {
           </Link>
           <Link
             href="/battle-setup"
-            className="rounded-full bg-gradient-to-r from-arena-purple to-arena-blue px-4 py-2 text-xs font-bold uppercase tracking-widest text-white shadow-glow transition-transform hover:scale-105"
+            className="hidden rounded-full bg-gradient-to-r from-arena-purple to-arena-blue px-4 py-2 text-xs font-bold uppercase tracking-widest text-white shadow-glow transition-transform hover:scale-105 sm:inline-flex"
           >
             Enter Arena
           </Link>
@@ -68,7 +68,7 @@ export function Navbar() {
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-label="Toggle navigation"
-            className="ml-1 flex h-9 w-9 items-center justify-center rounded-lg border border-arena-border text-arena-text2 lg:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-arena-border text-arena-text2 xl:hidden"
           >
             <span className="text-lg">{open ? "✕" : "☰"}</span>
           </button>
@@ -76,7 +76,7 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="border-t border-arena-border/50 bg-[#05050b] px-5 py-4 lg:hidden">
+        <div className="border-t border-arena-border/50 bg-[#05050b] px-5 py-4 xl:hidden">
           <div className="grid grid-cols-2 gap-2">
             {LINKS.map((link) => (
               <Link

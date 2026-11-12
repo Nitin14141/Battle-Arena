@@ -75,13 +75,13 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(5,5,11,0.25),rgba(5,5,11,0.9))]" />
         <div className="absolute inset-0 arena-grid opacity-40" />
 
-        <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-20 text-center sm:pb-28 sm:pt-28">
-          <span className="inline-flex items-center gap-2 rounded-full border border-arena-purple/30 bg-black/50 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.3em] text-arena-text2 backdrop-blur">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-arena-green" />
-            Engine online · 100 trials per mode
+        <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-14 text-center sm:px-5 sm:pb-28 sm:pt-28">
+          <span className="inline-flex max-w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-arena-purple/30 bg-black/50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-arena-text2 backdrop-blur sm:px-4 sm:tracking-[0.3em]">
+            <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-arena-green" />
+            Engine online · 100 trials<span className="hidden sm:inline"> per mode</span>
           </span>
 
-          <h1 className="mt-6 font-display text-5xl font-black leading-[0.95] tracking-tight text-white sm:text-7xl lg:text-8xl">
+          <h1 className="mt-5 font-display text-[clamp(1.65rem,8.8vw,6rem)] font-black leading-[0.95] tracking-tight text-white sm:text-7xl lg:text-8xl">
             EVERY UNIVERSE.
             <br />
             <span className="gradient-text">EVERY LEGEND.</span>
@@ -94,22 +94,22 @@ export default function HomePage() {
             deterministic trials, then explains exactly why the result came out the way it did.
           </p>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <div className="mx-auto mt-6 flex max-w-sm flex-col items-stretch justify-center gap-3 sm:mt-8 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center">
             <Link
               href="/battle-setup"
-              className="rounded-full bg-gradient-to-r from-arena-purple to-arena-blue px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-white shadow-glow transition-transform hover:scale-105"
+              className="w-full rounded-full bg-gradient-to-r from-arena-purple to-arena-blue px-8 py-4 text-center text-xs font-bold uppercase tracking-[0.2em] text-white shadow-glow transition-transform hover:scale-105 sm:w-auto"
             >
               Start a battle
             </Link>
             <Link
               href="/research"
-              className="rounded-full border border-arena-gold/30 bg-arena-gold/10 px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-arena-gold backdrop-blur transition-colors hover:border-arena-gold hover:text-white"
+              className="w-full rounded-full border border-arena-gold/30 bg-arena-gold/10 px-8 py-4 text-center text-xs font-bold uppercase tracking-[0.2em] text-arena-gold backdrop-blur transition-colors hover:border-arena-gold hover:text-white sm:w-auto"
             >
               Research anyone
             </Link>
             <Link
               href="/character-explorer"
-              className="rounded-full border border-white/20 bg-black/40 px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] text-arena-text2 backdrop-blur transition-colors hover:border-arena-blue hover:text-white"
+              className="w-full rounded-full border border-white/20 bg-black/40 px-8 py-4 text-center text-xs font-bold uppercase tracking-[0.2em] text-arena-text2 backdrop-blur transition-colors hover:border-arena-blue hover:text-white sm:w-auto"
             >
               Explore the roster
             </Link>
@@ -136,7 +136,7 @@ export default function HomePage() {
       </section>
 
       {/* Modes */}
-      <section className="mx-auto max-w-6xl px-5 py-20">
+      <section className="mx-auto max-w-6xl px-5 py-12 sm:py-20">
         <div className="mb-10 text-center">
           <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-arena-purple">Three modalities</p>
           <h2 className="mt-2 font-display text-3xl font-black text-white sm:text-4xl">CHOOSE YOUR BATTLE</h2>
@@ -165,7 +165,7 @@ export default function HomePage() {
 
       {/* Featured matchups */}
       <section className="border-y border-arena-border/40 bg-black/20">
-        <div className="mx-auto max-w-6xl px-5 py-20">
+        <div className="mx-auto max-w-6xl px-5 py-12 sm:py-20">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-arena-orange">Featured</p>
@@ -183,26 +183,32 @@ export default function HomePage() {
               return (
                 <div
                   key={`${a.id}-${b.id}`}
-                  className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-arena-border/60 bg-arena-surface/40 p-4"
+                  className="min-w-0 rounded-2xl border border-arena-border/60 bg-arena-surface/40 p-4"
                 >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <CharacterEmblem name={a.name} theme={a.theme} size="md" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-white">{a.name}</p>
-                      <p className="truncate text-[10px] text-arena-text3">{a.universe}</p>
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <CharacterEmblem name={a.name} theme={a.theme} size="sm" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-white">{a.name}</p>
+                        <p className="truncate text-[10px] text-arena-text3">{a.universe}</p>
+                      </div>
                     </div>
                     <span className="px-1 font-display text-[10px] font-black text-arena-text3">VS</span>
-                    <CharacterEmblem name={b.name} theme={b.theme} size="md" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-white">{b.name}</p>
-                      <p className="truncate text-[10px] text-arena-text3">{b.universe}</p>
+                    <div className="flex min-w-0 items-center justify-end gap-2 text-right">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-white">{b.name}</p>
+                        <p className="truncate text-[10px] text-arena-text3">{b.universe}</p>
+                      </div>
+                      <CharacterEmblem name={b.name} theme={b.theme} size="sm" />
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] uppercase tracking-widest text-arena-text3">{entry.label}</p>
+                  <div className="mt-3 flex items-center justify-between gap-3 border-t border-arena-border/30 pt-3">
+                    <p className="min-w-0 truncate text-[10px] uppercase tracking-widest text-arena-text3">
+                      {entry.label}
+                    </p>
                     <Link
                       href={`/battle-configuration?a=${a.id}&b=${b.id}&mode=overall`}
-                      className="mt-1 inline-block rounded-lg bg-arena-purple/20 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-arena-purple hover:bg-arena-purple/30"
+                      className="shrink-0 rounded-lg bg-arena-purple/20 px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-arena-purple hover:bg-arena-purple/30"
                     >
                       Simulate
                     </Link>
@@ -215,7 +221,7 @@ export default function HomePage() {
       </section>
 
       {/* Gallery */}
-      <section className="mx-auto max-w-6xl px-5 py-20">
+      <section className="mx-auto max-w-6xl px-5 py-12 sm:py-20">
         <div className="mb-8 text-center">
           <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-arena-blue">Arena network</p>
           <h2 className="mt-2 font-display text-3xl font-black text-white">SIX BATTLEGROUNDS</h2>
@@ -248,7 +254,7 @@ export default function HomePage() {
 
       {/* Roster preview */}
       <section className="border-y border-arena-border/40 bg-black/20">
-        <div className="mx-auto max-w-6xl px-5 py-20">
+        <div className="mx-auto max-w-6xl px-5 py-12 sm:py-20">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-arena-purple">Roster</p>
@@ -268,7 +274,7 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="mx-auto max-w-6xl px-5 py-20">
+      <section className="mx-auto max-w-6xl px-5 py-12 sm:py-20">
         <div className="mb-10 text-center">
           <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-arena-gold">Process</p>
           <h2 className="mt-2 font-display text-3xl font-black text-white">HOW A BATTLE RUNS</h2>
@@ -302,7 +308,7 @@ export default function HomePage() {
       </section>
 
       {/* Recent */}
-      <section className="mx-auto max-w-6xl px-5 pb-20">
+      <section className="mx-auto max-w-6xl px-5 pb-12 sm:pb-20">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-arena-blue">This browser</p>
@@ -316,7 +322,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="mx-auto max-w-6xl px-5 pb-24">
+      <section className="mx-auto max-w-6xl px-5 pb-16 sm:pb-24">
         <div className="relative overflow-hidden rounded-3xl border border-arena-purple/30">
           <ArenaImage
             src={ARENA_IMAGES.neon}

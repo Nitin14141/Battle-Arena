@@ -234,7 +234,7 @@ export function CharacterSelector({
               void research();
             }
           }}
-          placeholder="Any character: Doraemon, Dekisugi, Jaggu (Chhota Bheem)…"
+          placeholder="Search any character…"
           aria-label={`Search fighter ${side}`}
           className="w-full rounded-xl border border-arena-border bg-black/40 px-4 py-3 text-sm text-white placeholder:text-arena-text3 focus:border-arena-blue focus:outline-none focus:ring-1 focus:ring-arena-blue"
         />
