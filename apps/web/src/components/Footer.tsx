@@ -47,8 +47,8 @@ export function Footer() {
             scoring and reports you can reproduce from the stored seed.
           </p>
           <p className="mt-4 text-xs leading-relaxed text-arena-text3/80">
-            Fictional battles are hypothetical. Historical fighters are deceased figures simulated
-            from documented records only.
+            All battles are hypothetical and non-graphic. Fictional profiles use canon; real-person
+            profiles use publicly documented information and are not real-world predictions.
           </p>
         </div>
 

@@ -48,9 +48,10 @@ export default function AboutPage() {
             <h2 className="font-display text-xl font-bold text-white">Characters and evidence</h2>
             <p className="mt-2">
               The roster covers fictional characters from anime, manga, comics, film, television,
-              games and novels, plus deceased historical figures. Historical battles are explicitly
-              hypothetical and use documented equipment and recorded accounts, not invented powers.
-              Living people are never combat participants.
+              games and novels, plus real people — living or historical — from sport, politics,
+              music, film and public life. Every battle is explicitly hypothetical and non-graphic.
+              Real-person profiles use publicly documented information, not invented powers, and are
+              never presented as real-world predictions.
             </p>
           </section>
 

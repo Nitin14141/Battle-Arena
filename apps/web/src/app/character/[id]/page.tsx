@@ -65,7 +65,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-arena-purple/30 bg-arena-purple/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-arena-purple">
-                  {character.category}
+                  {character.category === "historical" ? "Real world" : "Fictional"}
                 </span>
                 <span className="rounded-full border border-arena-border bg-black/40 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-arena-text2">
                   {character.universe}
@@ -193,7 +193,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
           {character.source === "ai-researched"
             ? "AI-researched profile built from public sources. Verify disputed feats; the deterministic engine still decides every battle outcome."
             : character.category === "historical"
-              ? "Historical profile based on documented records. No living person participates."
+              ? "Real-world profile based on documented public records. The fight is hypothetical; living and historical people are both supported."
               : "Fictional profile based on canon source material. Disputed feats are excluded from the engine."}
         </p>
       </div>

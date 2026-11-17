@@ -70,7 +70,9 @@ export async function POST(request: Request) {
           model: result.model,
           sources: result.sources,
           engineVersion: "0.2.0",
-          note: "The AI produced this profile. The deterministic engine decides every battle outcome.",
+          note: result.fallback
+            ? "A conservative baseline profile was used because the free AI models were unavailable. The deterministic engine decides every battle outcome."
+            : "The AI produced this profile. The deterministic engine decides every battle outcome.",
         },
       },
     });

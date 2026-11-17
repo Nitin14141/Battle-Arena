@@ -16,11 +16,12 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-display text-xl font-bold text-white">2. Fictional and historical content</h2>
+            <h2 className="font-display text-xl font-bold text-white">2. Fictional and real-world content</h2>
             <p className="mt-2">
-              Fictional characters remain the property of their respective rights holders. Historical
-              fighters are deceased figures only. Profiles are limited to documented capabilities and
-              exclude living individuals.
+              Fictional characters remain the property of their respective rights holders. Battle
+              Arena also supports real people, living or historical. Real-person profiles are limited
+              to publicly documented capabilities and are presented as hypothetical, non-graphic
+              simulations — not factual claims or predictions about the person.
             </p>
           </section>
 

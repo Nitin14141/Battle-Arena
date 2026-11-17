@@ -1,16 +1,18 @@
 # AI Setup — Free-Model Character Research
 
-Battle Arena can profile **any fictional or deceased historical character**, not only the curated
-44. The profile is produced by a free open-weight model, validated, cached, and then passed to the
-deterministic TypeScript engine. **The AI never decides a winner.**
+Battle Arena can profile **any fictional character or real person, living or historical**, not only
+the curated 44. The profile is produced by a free open-weight model, validated, cached, and then
+passed to the deterministic TypeScript engine. **The AI never decides a winner.**
 
 ## What is already implemented
 
 - `POST /api/characters/research` accepts `{ "name": "Guts" }` and returns a complete character.
-- Evidence is gathered from the free Wikipedia API (`en.wikipedia.org/w/api.php`).
+- Evidence is gathered from the free Wikipedia API (`en.wikipedia.org/w/api.php`), including
+  spelling suggestions, alternative phrasings and prefix search for obscure side characters.
 - A free-only OpenRouter client builds the profile as strict JSON.
 - Every attribute is clamped to 1–100; tags are restricted to the engine's counter vocabulary.
-- Historical subjects must be confirmed deceased (`{"error":"living_person"}` is rejected).
+- Real people may be living or historical. Their profiles use public documentation only and are
+  treated as hypothetical, non-graphic simulations.
 - Profiles are cached for 30 days in the OS temp directory (`battle-arena/researched-characters.json`).
 - Researched fighters are searchable, have profile pages, and can fight in all three modes.
 - The Battle Setup screen exposes a **Research “name”** button; errors are shown inline.
@@ -22,7 +24,7 @@ without adding a model or key. The values look like:
 
 ```env
 OPENROUTER_API_KEY=...
-OPENROUTER_MODEL=qwen/qwen3-next-80b-a3b-instruct:free
+OPENROUTER_MODEL=nvidia/nemotron-3.5-lightning:free
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 AI_TIMEOUT=90000
 ```
@@ -43,10 +45,11 @@ If every free endpoint is rate-limited, the API returns a clear 429/503 instead 
 Model order (first working free model wins):
 
 1. `OPENROUTER_MODEL`, if it is free.
-2. `qwen/qwen3-next-80b-a3b-instruct:free` — Apache-2.0 open weights.
-3. `deepseek/deepseek-chat-v3-0324:free` — open weights, MIT-style model licence.
-4. `google/gemma-3-27b-it:free` — Gemma open-weights licence.
-5. `openrouter/free` — OpenRouter's free-only router.
+2. `nvidia/nemotron-3.5-lightning:free` — current free workhorse model.
+3. `google/gemma-4-31b-it:free` — Gemma open-weights licence.
+4. `openrouter/free` — OpenRouter's free-only router.
+
+`:free` availability rotates. The fallback list is updated when a provider retires a model.
 
 Free-tier limits are roughly **50 requests/day** (or 1,000/day after buying 10 credits) and
 **20 requests/minute**. `:free` model availability rotates; the fallback list handles retired IDs.
@@ -59,9 +62,11 @@ return immediately. The API route allows up to 120 seconds.
 
 ## Obscure characters
 
-If Wikipedia has no page, the model still produces a conservative profile, but it is clearly
-labelled **unverified** in the description and on the profile page. No feats are invented; unknown
-values stay near 45–60. For best accuracy, use characters with a documented public page.
+The lookup accepts misspellings and uses Wikipedia's search suggestion, multiple query phrasings
+and prefix search before falling back to model knowledge. If Wikipedia still has no page, the model
+produces a conservative profile, clearly labelled **unverified** in the description and on the
+profile page. No feats are invented; unknown values stay near 45–60. Adding the franchise in
+brackets improves disambiguation for very small side characters.
 
 ## Verification commands
 

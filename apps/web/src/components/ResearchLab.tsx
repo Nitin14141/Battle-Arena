@@ -19,10 +19,10 @@ interface ResearchData {
 }
 
 const EXAMPLES = [
+  "Lionel Messi",
   "Gandhi",
   "Beyonder",
   "Jaggu (Chhota Bheem)",
-  "Dekisugi (Doraemon)",
 ];
 
 export function ResearchLab() {
@@ -39,7 +39,7 @@ export function ResearchLab() {
 
   const research = async (subject?: string) => {
     const target = (subject ?? name).trim();
-    if (target.length < 2 || loading) return;
+    if (target.length < 1 || loading) return;
 
     setName(target);
     setLoading(true);
@@ -93,7 +93,7 @@ export function ResearchLab() {
         className="border-b border-arena-border/50 p-5 sm:p-6"
       >
         <label htmlFor="research-name" className="text-[10px] font-bold uppercase tracking-[0.3em] text-arena-purple">
-          Character name
+          Person or character
         </label>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row">
           <input
@@ -105,15 +105,15 @@ export function ResearchLab() {
               setName(event.target.value);
               setError(null);
             }}
-            placeholder="Anyone — Gandhi, Beyonder…"
+            placeholder="Anyone — Messi, Gandhi, side characters…"
             autoComplete="off"
             className="min-w-0 flex-1 rounded-xl border border-arena-border bg-black/40 px-4 py-3 text-sm text-white placeholder:text-arena-text3 focus:border-arena-blue focus:outline-none focus:ring-1 focus:ring-arena-blue"
           />
           <button
             type="submit"
-            disabled={loading || name.trim().length < 2}
+            disabled={loading || name.trim().length < 1}
             className={`rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all ${
-              loading || name.trim().length < 2
+              loading || name.trim().length < 1
                 ? "cursor-not-allowed border border-arena-border bg-arena-surface/40 text-arena-text3"
                 : "bg-gradient-to-r from-arena-purple to-arena-blue text-white shadow-glow hover:scale-[1.01]"
             }`}
@@ -144,12 +144,10 @@ export function ResearchLab() {
         {error && (
           <div role="alert" className="rounded-2xl border border-arena-red/30 bg-arena-red/10 p-5">
             <p className="text-sm font-semibold text-arena-red">{error}</p>
-            {!error.toLowerCase().includes("deceased") && (
-              <p className="mt-1.5 text-xs leading-relaxed text-arena-text2">
-                Free models occasionally time out or return malformed data. Try again; if the name is
-                ambiguous, add the show or film in brackets.
-              </p>
-            )}
+            <p className="mt-1.5 text-xs leading-relaxed text-arena-text2">
+              Free models occasionally time out or return malformed data. Try again; if the name is
+              ambiguous, add the show or film in brackets.
+            </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 type="button"
@@ -176,7 +174,7 @@ export function ResearchLab() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full border border-arena-purple/30 bg-arena-purple/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-arena-purple">
-                    {result.character.category}
+                    {result.character.category === "historical" ? "Real world" : "Fictional"}
                   </span>
                   <span className="rounded-full border border-arena-border bg-black/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-arena-text2">
                     {result.character.universe}
@@ -302,8 +300,9 @@ export function ResearchLab() {
               ))}
             </div>
             <p className="mt-4 text-xs leading-relaxed text-arena-text3">
-              The 44 curated fighters are a starting roster, not a limit. Any fictional character, or
-              any deceased historical figure, can be researched. Living real people are rejected.
+              The 44 curated fighters are a starting roster, not a limit. Any fictional character or
+              any real person — living or historical — can be researched. Misspellings and small side
+              characters are supported; add the show or film in brackets when a name is ambiguous.
             </p>
           </div>
         )}

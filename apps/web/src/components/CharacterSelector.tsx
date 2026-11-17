@@ -9,7 +9,7 @@ import { CharacterEmblem } from "@/components/CharacterEmblem";
 const CATEGORY_TABS: { id: CharacterCategory | "all"; label: string }[] = [
   { id: "all", label: "All" },
   { id: "fictional", label: "Fictional" },
-  { id: "historical", label: "Historical" },
+  { id: "historical", label: "Real world" },
 ];
 
 function overall(character: CharacterProfile): number {
@@ -94,7 +94,7 @@ export function CharacterSelector({
 
   const research = async () => {
     const name = query.trim();
-    if (name.length < 2 || researching) return;
+    if (name.length < 1 || researching) return;
 
     setResearching(true);
     setError(null);
@@ -144,7 +144,7 @@ export function CharacterSelector({
             <h3 className="truncate font-display text-2xl font-bold text-white">{selected.name}</h3>
             <p className="truncate text-sm text-arena-text2">{selected.universe}</p>
             <p className="mt-1 text-[11px] uppercase tracking-widest text-arena-text3">
-              {selected.category} · {selected.origin}
+              {selected.category === "historical" ? "real world" : "fictional"} · {selected.origin}
             </p>
           </div>
         </div>
@@ -229,7 +229,7 @@ export function CharacterSelector({
             setError(null);
           }}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && query.trim().length >= 2) {
+            if (event.key === "Enter" && query.trim().length >= 1) {
               event.preventDefault();
               void research();
             }
@@ -244,7 +244,7 @@ export function CharacterSelector({
         Side character? Add the show or film in brackets, e.g. “Jaggu (Chhota Bheem)”.
       </p>
 
-      {query.trim().length >= 2 && (
+      {query.trim().length >= 1 && (
         <button
           type="button"
           onClick={() => void research()}
@@ -296,7 +296,7 @@ export function CharacterSelector({
       <div className="mt-4 max-h-[19rem] space-y-2 overflow-y-auto pr-1">
         {results.length === 0 && (
           <div className="rounded-xl border border-dashed border-arena-border p-4 text-center">
-            {query.trim().length >= 2 ? (
+            {query.trim().length >= 1 ? (
               <p className="text-sm text-arena-text3">
                 No curated fighter matches “{query.trim()}”. Use the research button above to add them.
               </p>
@@ -325,7 +325,7 @@ export function CharacterSelector({
                 )}
               </span>
               <span className="block truncate text-[11px] text-arena-text3">
-                {character.universe} · {character.category}
+                {character.universe} · {character.category === "historical" ? "real world" : "fictional"}
               </span>
             </span>
             <span className="font-mono text-xs text-arena-text2">{overall(character)}</span>
@@ -342,7 +342,7 @@ export function CharacterSelector({
           complete, validated profile. The engine still decides the fight.
         </p>
         <Link
-          href={query.trim().length >= 2 ? `/research?name=${encodeURIComponent(query.trim())}` : "/research"}
+          href={query.trim().length >= 1 ? `/research?name=${encodeURIComponent(query.trim())}` : "/research"}
           className="mt-3 inline-block text-[11px] font-semibold text-arena-gold underline-offset-4 hover:text-white hover:underline"
         >
           Open the full research page →

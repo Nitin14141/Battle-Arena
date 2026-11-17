@@ -13,9 +13,9 @@ import type {
  * research pipeline writes additional profiles into the database; the API
  * already prefers a database record when one exists.
  *
- * Historical fighters are deceased historical figures only. Their combat
- * attributes describe documented equipment and recorded battlefield
- * performance, never invented superhuman abilities.
+ * Historical-category fighters are real-world figures, living or historical;
+ * their attributes describe documented equipment and public records, never
+ * invented superhuman abilities.
  */
 
 interface RosterEntry {

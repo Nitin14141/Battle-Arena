@@ -172,7 +172,7 @@ export default function AdminPage() {
               <Row label="Version" value={status.roster.version} />
               <Row label="Total fighters" value={String(status.roster.total)} />
               <Row label="Fictional" value={String(status.roster.fictional)} />
-              <Row label="Historical" value={String(status.roster.historical)} />
+              <Row label="Real world" value={String(status.roster.historical)} />
               <Row label="Universes" value={String(status.roster.universes)} />
               <Row label="Abilities recorded" value={String(status.roster.abilities)} />
             </Card>

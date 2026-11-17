@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const READY = [
   "Run deterministic battles in all three modes",
-  "Browse 44 fictional and historical fighters",
+  "Browse 44 curated fictional and real-world fighters",
   "Keep up to eight battle results in this browser",
   "Run eight-fighter tournament brackets",
 ];

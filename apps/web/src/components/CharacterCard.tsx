@@ -42,7 +42,7 @@ export function CharacterCard({
           </div>
         </div>
         <span className="absolute right-3 top-3 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-arena-text2 backdrop-blur">
-          {character.category}
+          {character.category === "historical" ? "Real world" : "Fictional"}
         </span>
       </div>
 

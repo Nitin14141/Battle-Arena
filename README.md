@@ -14,10 +14,11 @@ What works today:
 
 - Clean TypeScript build and every route renders.
 - Full flow: roster → battle setup → configuration → progress → results.
-- 44 curated fighters (fictional and deceased historical) with full attribute profiles.
-- **Any character** can be researched at `/research` with a free open-weight model, validated and
-  added to the roster. The 44 curated fighters are just the starting roster; the free key is
-  configured server-side (see `docs/AI_SETUP.md`).
+- 44 curated fighters (fictional and real-world) with full attribute profiles.
+- **Any character or real person** can be researched at `/research` with a free open-weight model,
+  validated and added to the roster. Living and historical people, fictional side characters and
+  misspelled names are all supported. The 44 curated fighters are just the starting roster; the
+  free key is configured server-side (see `docs/AI_SETUP.md`).
 - 10 fixed scenarios × 10 trials = 100 trials per mode; deterministic seeded RNG.
 - Three modes, individually or together, with draws and inconclusive outcomes.
 - Ten data-grounded reports per mode, attribute radar, tally, confidence and reproducible seed.

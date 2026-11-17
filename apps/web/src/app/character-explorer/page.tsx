@@ -90,7 +90,7 @@ export default function CharacterExplorerPage() {
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-sm text-arena-text2 sm:text-base">
             {CHARACTER_ROSTER.length} curated starters across {ROSTER_UNIVERSES.length} universes and eras.
-            Fictional canon and documented historical figures — plus anyone you research.
+            Fictional canon, real-world figures (living or historical) — plus anyone you research.
           </p>
           <Link
             href="/research"
@@ -119,7 +119,7 @@ export default function CharacterExplorerPage() {
             >
               <option value="all">All categories</option>
               <option value="fictional">Fictional</option>
-              <option value="historical">Historical</option>
+              <option value="historical">Real world</option>
             </select>
 
             <select
@@ -159,7 +159,7 @@ export default function CharacterExplorerPage() {
             <p className="text-[11px] uppercase tracking-widest text-arena-text3">
               Showing {results.length} {results.length === 1 ? "fighter" : "fighters"} · {CHARACTER_ROSTER.length} curated + AI-researched
             </p>
-            {researchQuery.length >= 2 && (
+            {researchQuery.length >= 1 && (
               <Link
                 href={researchHref}
                 className="text-[11px] font-semibold text-arena-purple underline-offset-4 hover:text-arena-blue hover:underline"
@@ -173,11 +173,11 @@ export default function CharacterExplorerPage() {
         {results.length === 0 ? (
           <div className="mt-12 rounded-2xl border border-dashed border-arena-border p-12 text-center">
             <p className="text-sm text-arena-text2">
-              {researchQuery.length >= 2
+              {researchQuery.length >= 1
                 ? `No curated fighter matches “${researchQuery}”.`
                 : "No fighter matches those filters."}
             </p>
-            {researchQuery.length >= 2 && (
+            {researchQuery.length >= 1 && (
               <Link
                 href={researchHref}
                 className="mt-4 inline-block rounded-full bg-gradient-to-r from-arena-purple to-arena-blue px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-white"

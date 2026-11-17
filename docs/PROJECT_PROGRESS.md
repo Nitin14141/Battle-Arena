@@ -52,7 +52,7 @@ Built and type-checked:
 - `POST /api/characters/research` turns **any name** into a validated character profile.
 - Free Wikipedia evidence lookup (search + extract) with prompt-injection stripping.
 - Free-only OpenRouter client: `:free` models only, no paid fallback, ordered model fallbacks.
-- Strict Zod schema: 1–100 attribute clamps, controlled tag vocabulary, deceased-only historical rule.
+- Strict Zod schema: 1–100 attribute clamps, controlled tag vocabulary, and real people who may be living or historical.
 - Researched profiles are cached (30 days), searchable, have dynamic profile pages and can fight
   in all three modes. The deterministic engine still computes every outcome.
 - Battle Setup exposes “Research “name””, shows progress and surfaces API errors inline.

@@ -6,7 +6,7 @@ import { CHARACTER_ROSTER } from "@/lib/roster";
 export const metadata: Metadata = {
   title: "Research any character",
   description:
-    "Research any fictional or deceased historical character with free AI, then fight them in the deterministic Battle Arena engine.",
+    "Research any fictional character or real person, living or historical, with free AI, then fight them in the deterministic Battle Arena engine."
 };
 
 export default function ResearchPage() {
@@ -22,9 +22,9 @@ export default function ResearchPage() {
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-arena-text2 sm:text-base">
             {CHARACTER_ROSTER.length} curated fighters are only the beginning. Type any fictional
-            character — from Doraemon to a side character like Jaggu — or any deceased historical
-            figure, including Mahatma Gandhi. The free AI builds a validated profile; the engine
-            decides every fight.
+            character — from Doraemon to a side character like Jaggu — or any real person, living or
+            historical: film, sport, politics, comics, games, history or anywhere else. The free AI
+            builds a validated profile; the engine decides every fight.
           </p>
         </section>
 
@@ -35,7 +35,7 @@ export default function ResearchPage() {
             {
               step: "01",
               title: "Name anyone",
-              text: "Any universe, era, manga, comic, film, game or show. Side characters can include the franchise in brackets for accuracy.",
+              text: "Any universe, era, manga, comic, film, game, show, sport or public figure. Misspellings are accepted; add the franchise in brackets when a side character needs disambiguation.",
             },
             {
               step: "02",
@@ -58,8 +58,9 @@ export default function ResearchPage() {
 
         <section className="mt-8 rounded-2xl border border-arena-border/60 bg-black/25 p-5 text-center">
           <p className="text-xs leading-relaxed text-arena-text2">
-            No living real people. No paid AI fallback. Researched profiles are cached for 30 days,
-            and the AI never chooses a winner. Disputed feats are marked as automatically researched.
+            Living and historical people are supported. No paid AI fallback. Researched profiles are
+            cached for 30 days, and the AI never chooses a winner. Disputed feats are marked as
+            automatically researched.
           </p>
           <Link
             href="/character-explorer"

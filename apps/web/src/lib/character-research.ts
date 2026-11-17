@@ -21,7 +21,6 @@ import {
 
 export type ResearchErrorCode =
   | "INVALID_NAME"
-  | "LIVING_PERSON"
   | "AI_NOT_CONFIGURED"
   | "RATE_LIMITED"
   | "MODEL_UNAVAILABLE"
@@ -168,8 +167,9 @@ ABSOLUTE RULES
 - Profile ONLY the named subject. Never substitute the franchise's main character, another cast member, or the series itself. The "name" field must be the subject's own name.
 - For a side character, use that character's own traits; the franchise is context only.
 - If a detail is unknown, use a conservative mid value (45-60) instead of inventing a feat.
-- Historical subjects must be deceased real people. If the subject is a living real person, return exactly {"error":"living_person"} and nothing else.
-- For a historical person, do not assign superhuman powers. Reflect documented training, equipment and recorded battlefield performance. Do not exceed 85 in combat scores without a documented basis.
+- Subjects may be fictional or real, living or deceased, and can come from anime, manga, comics, film, TV, games, books, sport, politics, history or any public source. Never refuse a subject because they are living.
+- For a real person (living or historical), use only publicly documented information. Do not invent superhuman powers, secret abilities or unsupported feats. Treat the profile as a hypothetical, non-graphic simulation and keep the tone neutral.
+- For a real person, do not exceed 85 in combat scores without a documented basis.
 
 CALIBRATION (1-100)
 50 = average adult, 65 = trained professional, 75 = elite, 85 = superhuman, 95+ = cosmic or legendary.
@@ -247,13 +247,15 @@ async function fetchWithTimeout(url: string, timeoutMs = 9000): Promise<Response
   }
 }
 
-async function wikipediaSearch(term: string): Promise<string[]> {
+async function wikipediaSearch(term: string, allowSuggestion = true): Promise<string[]> {
   const url = new URL("https://en.wikipedia.org/w/api.php");
   url.search = new URLSearchParams({
     action: "query",
     list: "search",
     srsearch: term,
-    srlimit: "5",
+    srlimit: "8",
+    srwhat: "text",
+    srinfo: "suggestion",
     format: "json",
     formatversion: "2",
     origin: "*",
@@ -262,11 +264,39 @@ async function wikipediaSearch(term: string): Promise<string[]> {
   const response = await fetchWithTimeout(url.toString());
   if (!response.ok) return [];
   const data = (await response.json()) as {
-    query?: { search?: { title?: string }[] };
+    query?: {
+      search?: { title?: string }[];
+      searchinfo?: { suggestion?: string };
+    };
   };
-  return (data.query?.search ?? [])
+  const titles = (data.query?.search ?? [])
     .map((entry) => entry.title)
     .filter((title): title is string => Boolean(title));
+  const suggestion = data.query?.searchinfo?.suggestion?.trim();
+  if (allowSuggestion && suggestion && suggestion.toLowerCase() !== term.trim().toLowerCase()) {
+    const suggested = await wikipediaSearch(suggestion, false);
+    return [...new Set([...suggested, ...titles])];
+  }
+  return titles;
+}
+
+async function wikipediaOpenSearch(term: string): Promise<string[]> {
+  const url = new URL("https://en.wikipedia.org/w/api.php");
+  url.search = new URLSearchParams({
+    action: "opensearch",
+    search: term,
+    limit: "8",
+    namespace: "0",
+    format: "json",
+    origin: "*",
+  }).toString();
+
+  const response = await fetchWithTimeout(url.toString());
+  if (!response.ok) return [];
+  const data = (await response.json()) as [string, string[], string[], string[]];
+  return Array.isArray(data?.[1])
+    ? data[1].filter((title): title is string => typeof title === "string" && title.length > 0)
+    : [];
 }
 
 async function wikipediaExtract(title: string): Promise<string> {
@@ -362,12 +392,28 @@ function rankTitles(
 
 async function gatherEvidence(name: string, franchiseHint: string | null): Promise<Source[]> {
   try {
-    let titles = await wikipediaSearch(franchiseHint ? `${name} ${franchiseHint}` : name);
-    if (titles.length === 0) titles = await wikipediaSearch(name);
-    if (titles.length === 0) titles = await wikipediaSearch(`${name} fictional character`);
-    if (titles.length === 0) titles = await wikipediaSearch(`${name} historical figure`);
-    const categories = await wikipediaCategories(titles.slice(0, 5));
-    titles = rankTitles(titles, name, categories);
+    // Search several phrasings so a side character can still resolve from a
+    // franchise page, and so Wikipedia's spelling suggestion can correct a
+    // slightly misspelled name. The AI receives the titles and extracts below.
+    const queries = [
+      franchiseHint ? `${name} ${franchiseHint}` : "",
+      name,
+      `${name} character`,
+      `${name} fictional character`,
+      `${name} biography`,
+    ].filter(Boolean);
+    const titleGroups = await Promise.all(queries.map((query) => wikipediaSearch(query)));
+    let titles = [...new Set(titleGroups.flat())];
+
+    if (titles.length === 0) {
+      titles = await wikipediaOpenSearch(name);
+      if (titles.length === 0 && franchiseHint) {
+        titles = await wikipediaOpenSearch(`${name} ${franchiseHint}`);
+      }
+    }
+
+    const categories = await wikipediaCategories(titles.slice(0, 10));
+    titles = rankTitles(titles, name, categories).slice(0, 3);
 
     const sources: Source[] = [];
     for (const title of titles.slice(0, 2)) {
@@ -461,7 +507,7 @@ export function isResearchConfigured(): boolean {
 export function configuredResearchModel(): string {
   const requested = process.env.OPENROUTER_MODEL?.trim();
   if (requested && (requested.endsWith(":free") || requested === "openrouter/free")) return requested;
-  return "qwen/qwen3-next-80b-a3b-instruct:free";
+  return "nvidia/nemotron-3.5-lightning:free";
 }
 
 /**
@@ -474,7 +520,7 @@ function parseSubject(rawName: string): {
   subjectLabel: string;
 } {
   const cleaned = rawName.replace(/\s+/g, " ").trim();
-  const match = cleaned.match(/^(.{2,90}?)\s*\(([^()]{2,70})\)$/);
+  const match = cleaned.match(/^(.{1,90}?)\s*\(([^()]{2,70})\)$/);
   if (match) {
     const displayName = match[1].trim();
     const franchiseHint = match[2].trim();
@@ -487,14 +533,6 @@ type Draft = z.infer<typeof DraftSchema>;
 
 function parseDraft(raw: string): Draft {
   const json = extractJson(raw);
-  if (json.error === "living_person") {
-    throw new ResearchError(
-      "LIVING_PERSON",
-      422,
-      "Battle Arena only simulates deceased historical people. This person appears to be living.",
-    );
-  }
-
   const parsed = DraftSchema.safeParse(json);
   if (!parsed.success) {
     const first = parsed.error.issues[0];
@@ -516,14 +554,49 @@ function normaliseName(value: string): string {
     .trim();
 }
 
-/** Accept the subject, a fuller name, or an alias — but not a different character. */
+function editDistance(a: string, b: string): number {
+  const previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    let diagonal = previous[0];
+    previous[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const old = previous[j];
+      previous[j] = Math.min(
+        previous[j] + 1,
+        previous[j - 1] + 1,
+        diagonal + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+      diagonal = old;
+    }
+  }
+  return previous[b.length];
+}
+
+function tokenMatches(target: string, candidate: string): boolean {
+  if (target === candidate) return true;
+  if (target.length >= 3 && candidate.length >= 3 && (target.includes(candidate) || candidate.includes(target))) {
+    return true;
+  }
+  if (target.length < 5 || candidate.length < 5 || target[0] !== candidate[0]) return false;
+  return editDistance(target, candidate) <= 2;
+}
+
+/** Accept the subject, a fuller name, an alias, or a close misspelling. */
 function nameMatches(requested: string, returned: string, aliases: string[]): boolean {
   const target = normaliseName(requested);
   if (!target) return true;
+  const targetTokens = target.split(" ").filter(Boolean);
+
   return [returned, ...aliases].some((candidate) => {
     const value = normaliseName(candidate);
     if (!value) return false;
-    return value === target || value.includes(target) || target.includes(value);
+    if (target.length === 1) return value === target || value.startsWith(`${target} `);
+    if (value === target || value.includes(target) || target.includes(value)) return true;
+    const candidateTokens = value.split(" ").filter(Boolean);
+    const matched = targetTokens.filter((token) =>
+      candidateTokens.some((candidateToken) => tokenMatches(token, candidateToken)),
+    ).length;
+    return matched >= Math.max(1, Math.ceil(targetTokens.length * 0.6));
   });
 }
 
@@ -546,7 +619,7 @@ async function requestResearchCompletion(
       model: model ?? process.env.OPENROUTER_MODEL,
       timeoutMs: Number(process.env.AI_TIMEOUT) || 90000,
       temperature: 0.2,
-      maxTokens: 2600,
+      maxTokens: 5000,
       jsonMode,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
@@ -571,8 +644,8 @@ async function researchWithAi(rawName: string): Promise<ResearchResult> {
   const subject = parseSubject(rawName);
   const name = subject.displayName;
 
-  if (name.length < 2 || name.length > 90) {
-    throw new ResearchError("INVALID_NAME", 400, "Enter a character name between 2 and 90 characters.");
+  if (name.length < 1 || name.length > 90) {
+    throw new ResearchError("INVALID_NAME", 400, "Enter a character name between 1 and 90 characters.");
   }
   if (detectPromptInjection(rawName)) {
     throw new ResearchError("INVALID_NAME", 400, "That name contains text that cannot be researched.");
@@ -641,7 +714,6 @@ async function researchWithAi(rawName: string): Promise<ResearchResult> {
   try {
     draft = parseDraft(completion.text);
   } catch (error) {
-    if (error instanceof ResearchError && error.code === "LIVING_PERSON") throw error;
     console.warn(
       `Research JSON invalid for ${subject.subjectLabel} (${completion.model}): ${completion.text.slice(0, 600)}`,
     );
@@ -650,7 +722,7 @@ async function researchWithAi(rawName: string): Promise<ResearchResult> {
       subject,
       evidenceBlock,
       "Your previous reply was not valid JSON. Return ONLY one JSON object matching the required shape, with no markdown or commentary.",
-      "deepseek/deepseek-chat-v3-0324:free",
+      undefined,
       true,
     );
     try {
@@ -668,7 +740,7 @@ async function researchWithAi(rawName: string): Promise<ResearchResult> {
       subject,
       evidenceBlock,
       `The subject is "${subject.subjectLabel}", but your previous JSON profiled "${draft.name}", a different character. Return a corrected JSON profile for ${name} only. Use ${name}'s own abilities and feats; do not describe the series' main character.`,
-      "deepseek/deepseek-chat-v3-0324:free",
+      undefined,
     );
     draft = parseDraft(completion.text);
     if (!nameMatches(name, draft.name, draft.aliases)) {
@@ -684,25 +756,18 @@ async function researchWithAi(rawName: string): Promise<ResearchResult> {
     .map((source) => source.categories.join(" "))
     .join(" ")
     .toLowerCase();
-  if (/living people/.test(categoryText)) {
-    throw new ResearchError(
-      "LIVING_PERSON",
-      422,
-      "Battle Arena only simulates deceased historical people. This person appears to be living.",
-    );
-  }
-
   const fictionEvidence = /fictional|characters|manga|anime|video game|comic|superhero|television series/.test(
     categoryText,
   );
-  const category: CharacterCategory = fictionEvidence ? "fictional" : draft.category;
-  if (category === "historical" && draft.deceased !== true) {
-    throw new ResearchError(
-      "LIVING_PERSON",
-      422,
-      "Battle Arena only simulates deceased historical people. This person appears to be living.",
+  const realWorldEvidence =
+    /(births|deaths|living people|real people|politicians|businesspeople|sportspeople|footballers|actors|actresses|musicians|writers|scientists|royalty)/.test(
+      categoryText,
     );
-  }
+  const category: CharacterCategory = fictionEvidence
+    ? "fictional"
+    : realWorldEvidence
+      ? "historical"
+      : draft.category;
 
   const sourced = sources.length > 0;
   const subjectSpecific = sources.some((source) =>
@@ -776,8 +841,8 @@ async function buildFallbackProfile(rawName: string): Promise<ResearchResult> {
   const subject = parseSubject(rawName);
   const name = subject.displayName;
 
-  if (name.length < 2 || name.length > 90) {
-    throw new ResearchError("INVALID_NAME", 400, "Enter a character name between 2 and 90 characters.");
+  if (name.length < 1 || name.length > 90) {
+    throw new ResearchError("INVALID_NAME", 400, "Enter a character name between 1 and 90 characters.");
   }
   if (detectPromptInjection(rawName)) {
     throw new ResearchError("INVALID_NAME", 400, "That name contains text that cannot be researched.");
@@ -792,21 +857,16 @@ async function buildFallbackProfile(rawName: string): Promise<ResearchResult> {
 
   const sources = await gatherEvidence(name, subject.franchiseHint);
   const categoryText = sources.map((source) => source.categories.join(" ")).join(" ").toLowerCase();
-  if (/living people/.test(categoryText)) {
-    throw new ResearchError(
-      "LIVING_PERSON",
-      422,
-      "Battle Arena only simulates deceased historical people. This person appears to be living.",
-    );
-  }
-
   const fictionEvidence = /fictional|characters|manga|anime|video game|comic|superhero|television series/.test(
     categoryText,
   );
-  const historicalEvidence = !fictionEvidence && /(births|deaths)/.test(categoryText);
+  const realWorldEvidence =
+    /(births|deaths|living people|real people|politicians|businesspeople|sportspeople|footballers|actors|actresses|musicians|writers|scientists|royalty)/.test(
+      categoryText,
+    );
   const category: CharacterCategory = fictionEvidence
     ? "fictional"
-    : historicalEvidence
+    : realWorldEvidence || sources.length > 0
       ? "historical"
       : "fictional";
   const hintSlug = subject.franchiseHint ? `-${slugify(subject.franchiseHint).slice(0, 40)}` : "";
@@ -833,7 +893,7 @@ async function buildFallbackProfile(rawName: string): Promise<ResearchResult> {
     id,
     name,
     aliases: [],
-    universe: subject.franchiseHint ?? "Unknown universe",
+    universe: subject.franchiseHint ?? (category === "historical" ? "Real world" : "Unknown universe"),
     franchise: subject.franchiseHint,
     category,
     origin: sources[0]?.title ?? "Unknown origin",

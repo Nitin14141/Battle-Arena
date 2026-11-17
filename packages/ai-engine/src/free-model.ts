@@ -8,9 +8,8 @@
  */
 
 export const DEFAULT_FREE_MODELS = [
-  "qwen/qwen3-next-80b-a3b-instruct:free",
-  "deepseek/deepseek-chat-v3-0324:free",
-  "google/gemma-3-27b-it:free",
+  "nvidia/nemotron-3.5-lightning:free",
+  "google/gemma-4-31b-it:free",
   "openrouter/free",
 ] as const;
 
@@ -123,6 +122,10 @@ export async function completeWithFreeModel(options: FreeModelOptions): Promise<
           temperature: options.temperature ?? 0.2,
           max_tokens: options.maxTokens ?? 2600,
           response_format: options.jsonMode ? { type: "json_object" } : undefined,
+          // Reasoning models otherwise spend the whole token budget thinking and
+          // return the chain of thought as the answer. The JSON answer is in
+          // `content` once reasoning is excluded.
+          reasoning: { exclude: true },
           stream: false,
         }),
         signal: controller.signal,
@@ -140,12 +143,12 @@ export async function completeWithFreeModel(options: FreeModelOptions): Promise<
       }
 
       const data = (await response.json()) as ChatCompletionResponse;
-      const text = data.choices?.[0]?.message?.content ?? data.choices?.[0]?.message?.reasoning ?? "";
+      const text = data.choices?.[0]?.message?.content ?? "";
       if (typeof text === "string" && text.trim().length > 0) {
         return { text, model };
       }
 
-      lastDetail = `${model} → empty response`;
+      lastDetail = `${model} → empty content`;
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         lastDetail = `${model} → timed out after ${attemptTimeout}ms`;
