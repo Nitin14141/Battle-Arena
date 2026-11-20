@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { BattleRunResult } from "@battle-arena/shared";
-import { readPendingBattle, saveLastRun, saveRunToHistory } from "@/lib/storage";
+import { readPendingBattle, readResearchedProfile, saveLastRun, saveRunToHistory } from "@/lib/storage";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -31,7 +31,13 @@ export default function BattleProgressPage() {
         const response = await fetch("/api/battle/run", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(pending),
+          // Send the browser's copies so a researched fighter does not depend on
+          // the server cache surviving between requests.
+          body: JSON.stringify({
+            ...pending,
+            characterA: readResearchedProfile(pending.a),
+            characterB: readResearchedProfile(pending.b),
+          }),
         });
         const payload = await response.json();
 

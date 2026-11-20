@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { CharacterCategory, CharacterProfile } from "@battle-arena/shared";
 import { CHARACTER_ROSTER } from "@/data/characters";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { listResearchedProfiles, saveResearchedProfile } from "@/lib/storage";
 
 const CATEGORY_TABS: { id: CharacterCategory | "all"; label: string }[] = [
   { id: "all", label: "All" },
@@ -67,7 +68,8 @@ export function CharacterSelector({
     const normalized = query.trim().toLowerCase();
     const combined = [...CHARACTER_ROSTER];
 
-    for (const character of remote) {
+    // Profiles researched in this browser survive even if the server cache is gone.
+    for (const character of [...remote, ...listResearchedProfiles()]) {
       if (!combined.some((entry) => entry.id === character.id)) combined.push(character);
     }
 
@@ -114,6 +116,7 @@ export function CharacterSelector({
         throw new Error(payload.error || "Research failed.");
       }
 
+      saveResearchedProfile(payload.data.character);
       onSelect(payload.data.character);
       setQuery("");
       setRemote([]);
@@ -256,7 +259,7 @@ export function CharacterSelector({
           }`}
         >
           {researching
-            ? "Researching… 10–60s"
+            ? "Researching… usually under 30s"
             : `✦ Research “${query.trim().slice(0, 28)}” with AI`}
         </button>
       )}
@@ -266,7 +269,7 @@ export function CharacterSelector({
           role="status"
           className="mt-2 rounded-lg border border-arena-purple/25 bg-arena-purple/10 px-2.5 py-2 text-[10px] leading-relaxed text-arena-text2"
         >
-          Researching “{query.trim()}”… free models can take 10–60 seconds.
+          Researching “{query.trim()}”… free models usually answer in under 30 seconds.
         </p>
       )}
 

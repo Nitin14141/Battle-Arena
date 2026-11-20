@@ -231,7 +231,7 @@ function slugify(value: string): string {
   );
 }
 
-async function fetchWithTimeout(url: string, timeoutMs = 9000): Promise<Response> {
+async function fetchWithTimeout(url: string, timeoutMs = 6000): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -390,17 +390,23 @@ function rankTitles(
   return [...titles].sort((a, b) => adjusted(b) - adjusted(a));
 }
 
+/** Evidence is reused for a short while so retries and baselines stay fast. */
+const EVIDENCE_TTL_MS = 15 * 60 * 1000;
+const evidenceCache = new Map<string, { sources: Source[]; at: number }>();
+
 async function gatherEvidence(name: string, franchiseHint: string | null): Promise<Source[]> {
+  const cacheKey = `${normaliseName(name)}|${normaliseName(franchiseHint ?? "")}`;
+  const memo = evidenceCache.get(cacheKey);
+  if (memo && Date.now() - memo.at < EVIDENCE_TTL_MS) return memo.sources;
+
   try {
-    // Search several phrasings so a side character can still resolve from a
-    // franchise page, and so Wikipedia's spelling suggestion can correct a
-    // slightly misspelled name. The AI receives the titles and extracts below.
+    // Three phrasings issued in parallel: the plain name (which also lets
+    // Wikipedia correct a misspelling), a character query, and a franchise-aware
+    // query for side characters. More queries mostly add latency.
     const queries = [
-      franchiseHint ? `${name} ${franchiseHint}` : "",
       name,
       `${name} character`,
-      `${name} fictional character`,
-      `${name} biography`,
+      franchiseHint ? `${name} ${franchiseHint}` : `${name} fictional character`,
     ].filter(Boolean);
     const titleGroups = await Promise.all(queries.map((query) => wikipediaSearch(query)));
     let titles = [...new Set(titleGroups.flat())];
@@ -415,9 +421,11 @@ async function gatherEvidence(name: string, franchiseHint: string | null): Promi
     const categories = await wikipediaCategories(titles.slice(0, 10));
     titles = rankTitles(titles, name, categories).slice(0, 3);
 
+    // Fetch the top two extracts together instead of one after the other.
+    const extracts = await Promise.all(titles.slice(0, 2).map((title) => wikipediaExtract(title)));
     const sources: Source[] = [];
-    for (const title of titles.slice(0, 2)) {
-      const extract = await wikipediaExtract(title);
+    for (const [index, title] of titles.slice(0, 2).entries()) {
+      const extract = extracts[index];
       if (!extract) continue;
       sources.push({
         title,
@@ -425,8 +433,10 @@ async function gatherEvidence(name: string, franchiseHint: string | null): Promi
         extract: truncate(stripInjectionPatterns(extract), 9000),
         categories: categories.get(title) ?? [],
       });
-      if (sources.length >= 2) break;
     }
+
+    if (evidenceCache.size > 100) evidenceCache.clear();
+    evidenceCache.set(cacheKey, { sources, at: Date.now() });
     return sources;
   } catch {
     return [];
@@ -507,7 +517,7 @@ export function isResearchConfigured(): boolean {
 export function configuredResearchModel(): string {
   const requested = process.env.OPENROUTER_MODEL?.trim();
   if (requested && (requested.endsWith(":free") || requested === "openrouter/free")) return requested;
-  return "nvidia/nemotron-3.5-lightning:free";
+  return "baidu/ernie-5.5-flash-preview:free";
 }
 
 /**
@@ -617,9 +627,9 @@ async function requestResearchCompletion(
       apiKey: process.env.OPENROUTER_API_KEY,
       baseUrl: process.env.OPENROUTER_BASE_URL,
       model: model ?? process.env.OPENROUTER_MODEL,
-      timeoutMs: Number(process.env.AI_TIMEOUT) || 90000,
+      timeoutMs: Number(process.env.AI_TIMEOUT) || 40000,
       temperature: 0.2,
-      maxTokens: 5000,
+      maxTokens: 3200,
       jsonMode,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },

@@ -1,10 +1,12 @@
-import type { BattleMode, BattleRunResult } from "@battle-arena/shared";
+import type { BattleMode, BattleRunResult, CharacterProfile } from "@battle-arena/shared";
 
 const HISTORY_KEY = "battle-arena:history:v1";
 const LAST_RUN_KEY = "battle-arena:last-run:v1";
 const GUEST_KEY = "battle-arena:guest:v1";
 const PENDING_KEY = "battle-arena:pending:v1";
+const RESEARCH_KEY = "battle-arena:researched:v1";
 const MAX_STORED_RUNS = 8;
+const MAX_RESEARCHED_PROFILES = 40;
 
 function hasWindow(): boolean {
   return typeof window !== "undefined";
@@ -87,6 +89,36 @@ export function savePendingBattle(pending: PendingBattle): void {
 export function readPendingBattle(): PendingBattle | null {
   if (!hasWindow()) return null;
   return readJson<PendingBattle>(sessionStorage, PENDING_KEY);
+}
+
+/* ── Researched profiles ──────────────────────────────────────
+ * The server cache lives on ephemeral storage per instance, so a researched
+ * fighter can disappear between pages. The browser keeps its own copy and the
+ * battle pages read from it, which makes a researched matchup always playable.
+ */
+export function saveResearchedProfile(profile: CharacterProfile): void {
+  if (!hasWindow() || !profile?.id) return;
+  const existing = listResearchedProfiles().filter((entry) => entry.id !== profile.id);
+  try {
+    localStorage.setItem(RESEARCH_KEY, JSON.stringify([profile, ...existing].slice(0, MAX_RESEARCHED_PROFILES)));
+  } catch {
+    try {
+      localStorage.setItem(RESEARCH_KEY, JSON.stringify([profile, ...existing].slice(0, 8)));
+    } catch {
+      // Private mode can refuse writes; the server cache still usually works.
+    }
+  }
+}
+
+export function listResearchedProfiles(): CharacterProfile[] {
+  if (!hasWindow()) return [];
+  const profiles = readJson<CharacterProfile[]>(localStorage, RESEARCH_KEY);
+  if (!Array.isArray(profiles)) return [];
+  return profiles.filter((profile) => Boolean(profile?.id && profile?.name && profile.intelligence));
+}
+
+export function readResearchedProfile(id: string): CharacterProfile | null {
+  return listResearchedProfiles().find((profile) => profile.id === id) ?? null;
 }
 
 export interface GuestProfile {

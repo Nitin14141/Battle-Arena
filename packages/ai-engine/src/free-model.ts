@@ -7,10 +7,17 @@
  * retired or rate-limited endpoint does not take research down.
  */
 
+/**
+ * Ordered fastest-first. Reasoning-only models (for example
+ * nvidia/nemotron-3.5-lightning) spend the whole token budget on hidden
+ * reasoning and return `content: null`, which used to cost ~35s per research
+ * before falling back. Every entry below is known to emit JSON content.
+ */
 export const DEFAULT_FREE_MODELS = [
-  "nvidia/nemotron-3.5-lightning:free",
+  "baidu/ernie-5.5-flash-preview:free",
   "google/gemma-4-31b-it:free",
-  "openrouter/free",
+  "google/gemma-4-26b-a4b-it:free",
+  "inclusionai/ling-3.2-flash:free",
 ] as const;
 
 export type FreeModelErrorCode =
@@ -60,16 +67,35 @@ export interface FreeModelResult {
 
 interface ChatCompletionResponse {
   choices?: {
+    finish_reason?: string | null;
     message?: {
       content?: string | null;
       reasoning?: string | null;
     };
   }[];
+  usage?: { completion_tokens_details?: { reasoning_tokens?: number } };
   error?: { message?: string };
 }
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Models that answered with reasoning but no content are unusable for profile
+ * generation. Remember them briefly so only the first request pays the cost.
+ */
+const UNUSABLE_TTL_MS = 10 * 60 * 1000;
+const unusable = new Map<string, number>();
+
+function isUnusable(model: string): boolean {
+  const at = unusable.get(model);
+  if (at === undefined) return false;
+  if (Date.now() - at > UNUSABLE_TTL_MS) {
+    unusable.delete(model);
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -92,9 +118,12 @@ export async function completeWithFreeModel(options: FreeModelOptions): Promise<
     );
   }
 
-  const models = [...new Set([requested, ...DEFAULT_FREE_MODELS].filter(Boolean) as string[])];
+  const ordered = [...new Set([requested, ...DEFAULT_FREE_MODELS].filter(Boolean) as string[])];
+  const models = [...ordered.filter((model) => !isUnusable(model)), ...ordered.filter((model) => isUnusable(model))];
   const baseUrl = (options.baseUrl || "https://openrouter.ai/api/v1").replace(/\/+$/, "");
-  const budgetMs = Math.max(15000, options.timeoutMs ?? 90000);
+  // A profile is ~1k tokens; a free model that needs longer than this is not
+  // worth blocking the research request for.
+  const budgetMs = Math.max(12000, options.timeoutMs ?? 40000);
   const startedAt = Date.now();
   let lastDetail = "";
   let sawRateLimit = false;
@@ -103,7 +132,7 @@ export async function completeWithFreeModel(options: FreeModelOptions): Promise<
     const remaining = budgetMs - (Date.now() - startedAt);
     if (remaining < 5000) break;
 
-    const attemptTimeout = Math.min(index === 0 ? 60000 : 40000, remaining);
+    const attemptTimeout = Math.min(index === 0 ? 30000 : 18000, remaining);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), attemptTimeout);
 
@@ -148,7 +177,12 @@ export async function completeWithFreeModel(options: FreeModelOptions): Promise<
         return { text, model };
       }
 
-      lastDetail = `${model} → empty content`;
+      // A reasoning model that exhausts max_tokens returns no content at all.
+      // Retrying it is pointless, so move straight to the next candidate.
+      const reasoningTokens = data.usage?.completion_tokens_details?.reasoning_tokens ?? 0;
+      lastDetail = `${model} → empty content (${reasoningTokens} reasoning tokens)`;
+      unusable.set(model, Date.now());
+      continue;
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         lastDetail = `${model} → timed out after ${attemptTimeout}ms`;

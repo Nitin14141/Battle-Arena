@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { CharacterProfile } from "@battle-arena/shared";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { saveResearchedProfile } from "@/lib/storage";
 
 interface ResearchMeta {
   model: string;
@@ -62,6 +63,7 @@ export function ResearchLab() {
         throw new Error(payload.error || "The research request failed.");
       }
 
+      saveResearchedProfile(payload.data.character);
       setResult(payload.data);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "The research request failed.");
@@ -123,7 +125,7 @@ export function ResearchLab() {
         </div>
         <p className="mt-2 text-[11px] leading-relaxed text-arena-text3">
           For a side character, add the show or film in brackets — for example “Jaggu (Chhota Bheem)”.
-          Free models only; a cold profile usually takes 10–60 seconds and is then cached.
+          Free models only; a cold profile usually takes a few seconds to about 30 seconds and is then cached.
         </p>
       </form>
 
@@ -136,7 +138,8 @@ export function ResearchLab() {
             </div>
             <p className="mt-2 text-xs leading-relaxed text-arena-text2">
               Reading public evidence, building the profile, and validating it. Free models can be
-              slow or return bad JSON; the pipeline retries once automatically. Please don’t close this page.
+              slow or return bad JSON; the pipeline retries once and then falls back to a baseline.
+              Please don’t close this page.
             </p>
           </div>
         )}

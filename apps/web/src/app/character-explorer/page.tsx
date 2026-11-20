@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { CharacterCategory, CharacterProfile } from "@battle-arena/shared";
 import { CharacterCard } from "@/components/CharacterCard";
 import { CHARACTER_ROSTER, ROSTER_UNIVERSES, characterPower } from "@/lib/roster";
+import { listResearchedProfiles } from "@/lib/storage";
 
 type SortKey = "name" | "power";
 
@@ -46,7 +47,7 @@ export default function CharacterExplorerPage() {
 
   const results = useMemo(() => {
     const combined = [...CHARACTER_ROSTER];
-    for (const character of remote) {
+    for (const character of [...remote, ...listResearchedProfiles()]) {
       if (!combined.some((entry) => entry.id === character.id)) combined.push(character);
     }
 
