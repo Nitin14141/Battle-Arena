@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { BattleRunResult } from "@battle-arena/shared";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { listRunHistory } from "@/lib/storage";
 
 function resultLabel(run: BattleRunResult): string {
@@ -49,9 +50,23 @@ export function RecentBattles() {
           className="rounded-2xl border border-arena-border/60 bg-arena-surface/40 p-4 transition-colors hover:border-arena-purple/50"
         >
           <div className="flex items-center gap-2">
-            <CharacterEmblem name={run.characterA.name} theme={run.characterA.theme} size="sm" />
+            <CharacterEmblem
+              name={run.characterA.name}
+              theme={run.characterA.theme}
+              size="sm"
+              image={characterImageFor(run.characterA)}
+              universe={run.characterA.universe}
+              category={run.characterA.category}
+            />
             <span className="text-[10px] font-bold uppercase tracking-widest text-arena-text3">vs</span>
-            <CharacterEmblem name={run.characterB.name} theme={run.characterB.theme} size="sm" />
+            <CharacterEmblem
+              name={run.characterB.name}
+              theme={run.characterB.theme}
+              size="sm"
+              image={characterImageFor(run.characterB)}
+              universe={run.characterB.universe}
+              category={run.characterB.category}
+            />
           </div>
           <p className="mt-3 truncate text-sm font-bold text-white">
             {run.characterA.name} <span className="text-arena-text3">/</span> {run.characterB.name}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArenaImage } from "@/components/ui/ArenaImage";
 import { CharacterCard } from "@/components/CharacterCard";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { RecentBattles } from "@/components/RecentBattles";
 import { ARENA_GALLERY, ARENA_IMAGES } from "@/lib/images";
 import { CHARACTER_ROSTER, getCharacterById, rosterStats } from "@/lib/roster";
@@ -187,7 +188,14 @@ export default function HomePage() {
                 >
                   <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3">
                     <div className="flex min-w-0 items-center gap-2">
-                      <CharacterEmblem name={a.name} theme={a.theme} size="sm" />
+                      <CharacterEmblem
+                        name={a.name}
+                        theme={a.theme}
+                        size="sm"
+                        image={characterImageFor(a)}
+                        universe={a.universe}
+                        category={a.category}
+                      />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-white">{a.name}</p>
                         <p className="truncate text-[10px] text-arena-text3">{a.universe}</p>
@@ -199,7 +207,14 @@ export default function HomePage() {
                         <p className="truncate text-sm font-bold text-white">{b.name}</p>
                         <p className="truncate text-[10px] text-arena-text3">{b.universe}</p>
                       </div>
-                      <CharacterEmblem name={b.name} theme={b.theme} size="sm" />
+                      <CharacterEmblem
+                        name={b.name}
+                        theme={b.theme}
+                        size="sm"
+                        image={characterImageFor(b)}
+                        universe={b.universe}
+                        category={b.category}
+                      />
                     </div>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3 border-t border-arena-border/30 pt-3">

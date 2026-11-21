@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { CharacterProfile } from "@battle-arena/shared";
 import { CharacterSelector } from "@/components/CharacterSelector";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { loadCharacter } from "@/lib/client-characters";
 
 function composites(character: CharacterProfile) {
@@ -116,7 +117,14 @@ export default function BattleSetupPage() {
         {a && b && a.id !== b.id && (
           <section className="mt-8 grid animate-fade-in gap-6 rounded-3xl border border-arena-border/60 bg-arena-surface/40 p-6 lg:grid-cols-[1fr_1.4fr_1fr] lg:items-center">
             <div className="flex items-center gap-3">
-              <CharacterEmblem name={a.name} theme={a.theme} size="lg" />
+              <CharacterEmblem
+                name={a.name}
+                theme={a.theme}
+                size="lg"
+                image={characterImageFor(a)}
+                universe={a.universe}
+                category={a.category}
+              />
               <div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-arena-purple">Fighter A</p>
                 <p className="font-display text-xl font-bold text-white">{a.name}</p>
@@ -149,7 +157,14 @@ export default function BattleSetupPage() {
             </div>
 
             <div className="flex items-center gap-3 lg:flex-row-reverse lg:text-right">
-              <CharacterEmblem name={b.name} theme={b.theme} size="lg" />
+              <CharacterEmblem
+                name={b.name}
+                theme={b.theme}
+                size="lg"
+                image={characterImageFor(b)}
+                universe={b.universe}
+                category={b.category}
+              />
               <div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-arena-blue">Fighter B</p>
                 <p className="font-display text-xl font-bold text-white">{b.name}</p>

@@ -126,6 +126,8 @@ export interface CharacterProfile {
   evidence: string[];
   tags: string[];
   theme: EmblemTheme;
+  /** Portrait image resolved from a free public source. */
+  imageUrl?: string | null;
   /** Where the profile came from. Curated profiles omit this. */
   source?: "curated" | "ai-researched";
   /** ISO timestamp for profiles created by the AI researcher. */

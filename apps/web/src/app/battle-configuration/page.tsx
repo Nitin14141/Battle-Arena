@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { BattleMode, CharacterProfile } from "@battle-arena/shared";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { loadCharacter } from "@/lib/client-characters";
 import { savePendingBattle } from "@/lib/storage";
 
@@ -145,7 +146,14 @@ export default function BattleConfigurationPage() {
         </section>
 
         <section className="mt-10 flex items-center justify-center gap-4 rounded-3xl border border-arena-border/60 bg-arena-surface/40 p-5">
-          <CharacterEmblem name={a.name} theme={a.theme} size="md" />
+          <CharacterEmblem
+            name={a.name}
+            theme={a.theme}
+            size="md"
+            image={characterImageFor(a)}
+            universe={a.universe}
+            category={a.category}
+          />
           <div className="text-center">
             <p className="text-sm font-bold text-white">{a.name}</p>
             <p className="text-[11px] uppercase tracking-widest text-arena-purple">A</p>
@@ -155,7 +163,14 @@ export default function BattleConfigurationPage() {
             <p className="text-sm font-bold text-white">{b.name}</p>
             <p className="text-[11px] uppercase tracking-widest text-arena-blue">B</p>
           </div>
-          <CharacterEmblem name={b.name} theme={b.theme} size="md" />
+          <CharacterEmblem
+            name={b.name}
+            theme={b.theme}
+            size="md"
+            image={characterImageFor(b)}
+            universe={b.universe}
+            category={b.category}
+          />
         </section>
 
         <section className="mt-10">

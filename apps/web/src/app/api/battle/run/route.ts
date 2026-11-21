@@ -124,6 +124,7 @@ function sanitiseProfile(value: unknown, expectedId: string): CharacterProfile |
     evidence: toList(raw.evidence, 8),
     tags: toList(raw.tags, 10),
     theme,
+    imageUrl: toOptionalText(raw.imageUrl, 500),
     source: "ai-researched",
     researchedAt: toOptionalText(raw.researchedAt, 40) ?? new Date().toISOString(),
   };

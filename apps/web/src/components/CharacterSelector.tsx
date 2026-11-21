@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { CharacterCategory, CharacterProfile } from "@battle-arena/shared";
 import { CHARACTER_ROSTER } from "@/data/characters";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { listResearchedProfiles, saveResearchedProfile } from "@/lib/storage";
 
 const CATEGORY_TABS: { id: CharacterCategory | "all"; label: string }[] = [
@@ -142,7 +143,14 @@ export function CharacterSelector({
         </div>
 
         <div className="mt-5 flex items-center gap-4">
-          <CharacterEmblem name={selected.name} theme={selected.theme} size="lg" />
+          <CharacterEmblem
+            name={selected.name}
+            theme={selected.theme}
+            size="lg"
+            image={characterImageFor(selected)}
+            universe={selected.universe}
+            category={selected.category}
+          />
           <div className="min-w-0">
             <h3 className="truncate font-display text-2xl font-bold text-white">{selected.name}</h3>
             <p className="truncate text-sm text-arena-text2">{selected.universe}</p>
@@ -315,7 +323,14 @@ export function CharacterSelector({
             onClick={() => onSelect(character)}
             className="group flex w-full items-center gap-3 rounded-xl border border-arena-border/50 bg-black/25 p-3 text-left transition-colors hover:border-arena-purple/50 hover:bg-arena-surface/60"
           >
-            <CharacterEmblem name={character.name} theme={character.theme} size="sm" />
+            <CharacterEmblem
+              name={character.name}
+              theme={character.theme}
+              size="sm"
+              image={characterImageFor(character)}
+              universe={character.universe}
+              category={character.category}
+            />
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2">
                 <span className="truncate text-sm font-bold text-white group-hover:text-arena-blue">

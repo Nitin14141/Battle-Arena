@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArenaImage } from "@/components/ui/ArenaImage";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { CHARACTER_ROSTER } from "@/lib/roster";
 import { resolveCharacterById } from "@/lib/server-characters";
 import { arenaImageFor } from "@/lib/images";
@@ -61,7 +62,14 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
             priority
           />
           <div className="relative flex flex-col gap-6 p-6 sm:p-10 md:flex-row md:items-end">
-            <CharacterEmblem name={character.name} theme={character.theme} size="xl" />
+            <CharacterEmblem
+              name={character.name}
+              theme={character.theme}
+              size="xl"
+              image={characterImageFor(character)}
+              universe={character.universe}
+              category={character.category}
+            />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-arena-purple/30 bg-arena-purple/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-arena-purple">

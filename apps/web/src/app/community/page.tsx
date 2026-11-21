@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { getCharacterById } from "@/data/characters";
 
 const THREADS = [
@@ -118,11 +119,25 @@ export default function CommunityPage() {
 
                     {a && b && (
                       <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-arena-border/50 bg-black/30 p-3">
-                        <CharacterEmblem name={a.name} theme={a.theme} size="sm" />
+                        <CharacterEmblem
+                          name={a.name}
+                          theme={a.theme}
+                          size="sm"
+                          image={characterImageFor(a)}
+                          universe={a.universe}
+                          category={a.category}
+                        />
                         <span className="text-xs font-bold text-white">{a.name}</span>
                         <span className="text-[10px] text-arena-text3">vs</span>
                         <span className="text-xs font-bold text-white">{b.name}</span>
-                        <CharacterEmblem name={b.name} theme={b.theme} size="sm" />
+                        <CharacterEmblem
+                          name={b.name}
+                          theme={b.theme}
+                          size="sm"
+                          image={characterImageFor(b)}
+                          universe={b.universe}
+                          category={b.category}
+                        />
                         <Link
                           href={`/battle-configuration?a=${a.id}&b=${b.id}&mode=overall`}
                           className="ml-auto rounded-lg bg-gradient-to-r from-arena-purple to-arena-blue px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white"

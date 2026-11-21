@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { getCharacterById } from "@/lib/roster";
 import { arenaImageFor } from "@/lib/images";
 import { ArenaImage } from "@/components/ui/ArenaImage";
@@ -101,7 +102,14 @@ export default function TrendingPage() {
 
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2">
-                      <CharacterEmblem name={a.name} theme={a.theme} size="sm" />
+                      <CharacterEmblem
+                        name={a.name}
+                        theme={a.theme}
+                        size="sm"
+                        image={characterImageFor(a)}
+                        universe={a.universe}
+                        category={a.category}
+                      />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-white">{a.name}</p>
                         <p className="truncate text-[10px] text-arena-text3">{a.universe}</p>
@@ -109,7 +117,14 @@ export default function TrendingPage() {
                     </div>
                     <span className="font-display text-xs font-black text-arena-text3">VS</span>
                     <div className="flex min-w-0 items-center gap-2">
-                      <CharacterEmblem name={b.name} theme={b.theme} size="sm" />
+                      <CharacterEmblem
+                        name={b.name}
+                        theme={b.theme}
+                        size="sm"
+                        image={characterImageFor(b)}
+                        universe={b.universe}
+                        category={b.category}
+                      />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-white">{b.name}</p>
                         <p className="truncate text-[10px] text-arena-text3">{b.universe}</p>

@@ -9,6 +9,7 @@ import type {
   ModeBattleResult,
 } from "@battle-arena/shared";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { ArenaImage } from "@/components/ui/ArenaImage";
 import { arenaImageFor } from "@/lib/images";
 
@@ -209,7 +210,14 @@ export function BattleResults({ result }: { result: BattleRunResult }) {
         />
         <div className="relative grid gap-6 p-6 sm:p-10 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
           <div className="flex items-center gap-4 lg:flex-row-reverse lg:text-right">
-            <CharacterEmblem name={result.characterA.name} theme={result.characterA.theme} size="xl" />
+            <CharacterEmblem
+              name={result.characterA.name}
+              theme={result.characterA.theme}
+              size="xl"
+              image={characterImageFor(result.characterA)}
+              universe={result.characterA.universe}
+              category={result.characterA.category}
+            />
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] text-arena-purple">Fighter A</p>
               <h2 className="font-display text-2xl font-black text-white sm:text-3xl">{result.characterA.name}</h2>
@@ -226,7 +234,14 @@ export function BattleResults({ result }: { result: BattleRunResult }) {
           </div>
 
           <div className="flex items-center gap-4">
-            <CharacterEmblem name={result.characterB.name} theme={result.characterB.theme} size="xl" />
+            <CharacterEmblem
+              name={result.characterB.name}
+              theme={result.characterB.theme}
+              size="xl"
+              image={characterImageFor(result.characterB)}
+              universe={result.characterB.universe}
+              category={result.characterB.category}
+            />
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] text-arena-blue">Fighter B</p>
               <h2 className="font-display text-2xl font-black text-white sm:text-3xl">{result.characterB.name}</h2>

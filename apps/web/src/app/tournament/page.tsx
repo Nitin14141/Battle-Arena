@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { CharacterProfile } from "@battle-arena/shared";
 import { CHARACTER_ROSTER } from "@/data/characters";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 
 const FIELD_SIZE = 8;
 
@@ -155,7 +156,14 @@ export default function TournamentPage() {
           <section className="mt-8 rounded-3xl border border-arena-gold/40 bg-arena-gold/10 p-6 text-center animate-fade-in">
             <p className="text-[10px] uppercase tracking-[0.4em] text-arena-gold">Champion</p>
             <div className="mt-3 flex items-center justify-center gap-4">
-              <CharacterEmblem name={champion.name} theme={champion.theme} size="xl" />
+              <CharacterEmblem
+                name={champion.name}
+                theme={champion.theme}
+                size="xl"
+                image={characterImageFor(champion)}
+                universe={champion.universe}
+                category={champion.category}
+              />
               <div className="text-left">
                 <h2 className="font-display text-3xl font-black text-white">{champion.name}</h2>
                 <p className="text-sm text-arena-text2">{champion.universe}</p>
@@ -178,7 +186,14 @@ export default function TournamentPage() {
                 key={character.id}
                 className="flex items-center gap-2 rounded-xl border border-arena-border/50 bg-arena-surface/40 p-3"
               >
-                <CharacterEmblem name={character.name} theme={character.theme} size="sm" />
+                <CharacterEmblem
+                  name={character.name}
+                  theme={character.theme}
+                  size="sm"
+                  image={characterImageFor(character)}
+                  universe={character.universe}
+                  category={character.category}
+                />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-white">{character.name}</p>
                   <p className="truncate text-[10px] text-arena-text3">{character.universe}</p>

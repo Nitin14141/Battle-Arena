@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { CharacterCategory, CharacterProfile, EmblemTheme } from "@battle-arena/shared";
 import { completeWithFreeModel, FreeModelError } from "@battle-arena/ai-engine";
 import { detectPromptInjection, stripInjectionPatterns, truncate } from "@battle-arena/validation";
+import { resolveCharacterImage } from "./character-image";
 import {
   findResearchedCharacters,
   getResearchedCharacter,
@@ -823,6 +824,9 @@ async function researchWithAi(rawName: string): Promise<ResearchResult> {
     researchedAt: new Date().toISOString(),
   };
 
+  const portrait = await resolveCharacterImage({ name: profile.name, universe: profile.universe, category });
+  if (portrait) profile.imageUrl = portrait.url;
+
   await saveResearchedCharacter({
     profile,
     model: completion.model,
@@ -943,6 +947,9 @@ async function buildFallbackProfile(rawName: string): Promise<ResearchResult> {
     source: "ai-researched",
     researchedAt: new Date().toISOString(),
   };
+
+  const portrait = await resolveCharacterImage({ name: profile.name, universe: profile.universe, category });
+  if (portrait) profile.imageUrl = portrait.url;
 
   await saveResearchedCharacter({
     profile,

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { CharacterProfile } from "@battle-arena/shared";
 import { ArenaImage } from "@/components/ui/ArenaImage";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { arenaImageFor } from "@/lib/images";
 
 export function CharacterCard({
@@ -32,7 +33,14 @@ export function CharacterCard({
         />
         <div className="absolute inset-0 flex items-end p-4">
           <div className="flex items-center gap-3">
-            <CharacterEmblem name={character.name} theme={character.theme} size={compact ? "sm" : "md"} />
+            <CharacterEmblem
+              name={character.name}
+              theme={character.theme}
+              size={compact ? "sm" : "md"}
+              image={characterImageFor(character)}
+              universe={character.universe}
+              category={character.category}
+            />
             <div className="min-w-0">
               <h3 className="truncate font-display text-lg font-bold text-white group-hover:text-arena-blue">
                 {character.name}

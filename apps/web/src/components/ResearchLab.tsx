@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { CharacterProfile } from "@battle-arena/shared";
 import { CharacterEmblem } from "@/components/CharacterEmblem";
+import { characterImageFor } from "@/lib/portraits";
 import { saveResearchedProfile } from "@/lib/storage";
 
 interface ResearchMeta {
@@ -173,7 +174,14 @@ export function ResearchLab() {
         {result && (
           <div className="animate-fade-in">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-              <CharacterEmblem name={result.character.name} theme={result.character.theme} size="lg" />
+              <CharacterEmblem
+                name={result.character.name}
+                theme={result.character.theme}
+                size="lg"
+                image={characterImageFor(result.character)}
+                universe={result.character.universe}
+                category={result.character.category}
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full border border-arena-purple/30 bg-arena-purple/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-arena-purple">
