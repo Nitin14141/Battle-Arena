@@ -15,11 +15,22 @@ const THEMES: Record<EmblemTheme, { from: string; to: string; ring: string; glow
 };
 
 const SIZES = {
-  sm: "h-10 w-10 text-sm rounded-lg",
-  md: "h-14 w-14 text-lg rounded-xl",
-  lg: "h-20 w-20 text-2xl rounded-2xl",
-  xl: "h-32 w-32 text-3xl rounded-3xl",
+  sm: "h-12 w-12 text-sm rounded-lg",
+  md: "h-16 w-16 text-lg rounded-xl",
+  lg: "h-24 w-24 text-2xl rounded-2xl",
+  xl: "h-36 w-36 text-3xl rounded-3xl",
 } as const;
+
+/**
+ * Portrait art is framed differently per source: anime artwork is a head-and-
+ * shoulders bust, while wiki page images are often full-body renders or comic
+ * covers. Cropping each towards the subject keeps the face visible.
+ */
+function focusFor(url: string): string {
+  if (url.includes("anilist.co")) return "50% 18%";
+  if (url.includes("wikimedia.org")) return "50% 25%";
+  return "50% 30%";
+}
 
 function initialsFor(name: string): string {
   const words = name.split(/\s+/).filter((word) => /[A-Za-z]/.test(word));
@@ -128,7 +139,8 @@ export function CharacterEmblem({
           loading="lazy"
           decoding="async"
           onError={() => setBroken(true)}
-          className="absolute inset-0 h-full w-full object-cover object-top"
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: focusFor(source ?? "") }}
         />
       ) : (
         <>
