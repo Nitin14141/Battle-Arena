@@ -34,7 +34,7 @@ const FANDOM_WIKIS: { universe: RegExp; wiki: string }[] = [
 const ANIME_UNIVERSES =
   /jujutsu|naruto|one piece|dragon ball|one punch|death note|code geass|attack on titan|demon slayer|fate|bleach|my hero|chainsaw|hunter x hunter|tokyo ghoul|sword art|evangelion|fullmetal|studio ghibli|pokemon|pokémon|digimon|sailor moon|doraemon/i;
 
-const WIDTH = "1000";
+const WIDTH = "600";
 
 const toUpgrade = (url: string) => url.replace(/scale-to-width-down\/\d+/, `scale-to-width-down/${WIDTH}`);
 const stripQuery = (url: string) => url.split("?")[0];

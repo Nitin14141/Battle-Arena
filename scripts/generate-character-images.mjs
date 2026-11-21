@@ -39,7 +39,7 @@ const WIKI_SEARCH = {
   "shivaji-bhonsale": "Shivaji Bhonsale",
 };
 
-const WIDTH = 1000;
+const WIDTH = 600;
 
 const toUpgrade = (url) => url.replace(/scale-to-width-down\/\d+/, `scale-to-width-down/${WIDTH}`);
 const stripQuery = (url) => url.split("?")[0];
