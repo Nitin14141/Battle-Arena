@@ -1,4 +1,6 @@
 import type { CharacterCategory } from "@battle-arena/shared";
+import { CHARACTER_IMAGES } from "@/data/character-images";
+import { CHARACTER_ROSTER } from "@/data/characters";
 
 /**
  * Free portrait resolution.
@@ -222,6 +224,22 @@ export async function resolveCharacterImage({
   const key = `${trimmed}|${universe ?? ""}|${category ?? ""}`.toLowerCase();
   const cached = cache.get(key);
   if (cached && cached.expires > Date.now()) return cached.value;
+
+  // A curated fighter (or a known alias) always has a verified portrait, and
+  // answering from it first avoids ambiguous names: a wiki search for "Bruce
+  // Wayne" can return an unrelated character who happens to share the name.
+  const needle = trimmed.toLowerCase();
+  const curated = CHARACTER_ROSTER.find(
+    (fighter) =>
+      fighter.name.toLowerCase() === needle ||
+      fighter.aliases.some((alias) => alias.toLowerCase() === needle),
+  );
+  const curatedImage = curated ? CHARACTER_IMAGES[curated.id] : undefined;
+  if (curatedImage) {
+    const value = { url: curatedImage.url, source: curatedImage.source };
+    cache.set(key, { value, expires: Date.now() + FOUND_TTL });
+    return value;
+  }
 
   const remember = (value: ResolvedCharacterImage | null) => {
     cache.set(key, { value, expires: Date.now() + (value ? FOUND_TTL : MISS_TTL) });
