@@ -455,7 +455,7 @@ export const CHARACTER_ROSTER: CharacterProfile[] = [
   build({
     id: "wonder-woman",
     name: "Wonder Woman",
-    aliases: ["Diana of Themyscira"],
+    aliases: ["Diana of Themyscira", "Diana Prince"],
     universe: "DC Comics",
     franchise: "DC Comics",
     category: "fictional",
@@ -495,7 +495,7 @@ export const CHARACTER_ROSTER: CharacterProfile[] = [
   build({
     id: "iron-man",
     name: "Iron Man",
-    aliases: ["Tony Stark"],
+    aliases: ["Tony Stark", "Anthony Stark", "Anthony Edward Stark"],
     universe: "Marvel",
     franchise: "Marvel",
     category: "fictional",
@@ -535,7 +535,7 @@ export const CHARACTER_ROSTER: CharacterProfile[] = [
   build({
     id: "doctor-strange",
     name: "Doctor Strange",
-    aliases: ["Sorcerer Supreme"],
+    aliases: ["Sorcerer Supreme", "Stephen Strange", "Stephen Vincent Strange"],
     universe: "Marvel",
     franchise: "Marvel",
     category: "fictional",
