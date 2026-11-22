@@ -25,7 +25,7 @@ import { buildScenarioReports } from "@battle-arena/report-engine";
  *   output.
  */
 
-export const ENGINE_VERSION = "0.2.0";
+export const ENGINE_VERSION = "0.3.0";
 export const TRIALS_PER_SCENARIO = 10;
 
 const INTELLIGENCE_WEIGHTS: Record<keyof IntelligenceAttributes, number> = {
@@ -83,7 +83,12 @@ interface ScenarioDefinition {
   combatMods?: ModMap<CombatAttributes>;
   volatility: number;
   equipmentFactor: number;
-  intelligenceWeightInOverall: number;
+  /**
+   * How strongly a mind edge moves an overall fight. The score is
+   * `combat + (intelligence - 50) * influence`, so a superior brain can decide
+   * a close fight but never out-weigh a far stronger body.
+   */
+  intelligenceInfluence: number;
 }
 
 export const SCENARIOS: ScenarioDefinition[] = [
@@ -101,7 +106,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
     },
     volatility: 1,
     equipmentFactor: 1,
-    intelligenceWeightInOverall: 0.45,
+    intelligenceInfluence: 0.3,
   },
   {
     id: "max_power",
@@ -119,7 +124,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
     intelligenceMods: { strategic: 1.1, problemSolving: 1.1 },
     volatility: 1.25,
     equipmentFactor: 1,
-    intelligenceWeightInOverall: 0.32,
+    intelligenceInfluence: 0.22,
   },
   {
     id: "no_preparation",
@@ -137,7 +142,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
     combatMods: { reactionSpeed: 0.9 },
     volatility: 1.15,
     equipmentFactor: 0.8,
-    intelligenceWeightInOverall: 0.38,
+    intelligenceInfluence: 0.24,
   },
   {
     id: "full_preparation",
@@ -155,7 +160,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
     combatMods: { stamina: 1.1, endurance: 1.1 },
     volatility: 0.85,
     equipmentFactor: 1.1,
-    intelligenceWeightInOverall: 0.5,
+    intelligenceInfluence: 0.38,
   },
   {
     id: "full_knowledge",
@@ -172,7 +177,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
     intelligenceMods: { prediction: 1.25, deception: 1.2, problemSolving: 1.1 },
     volatility: 0.8,
     equipmentFactor: 1,
-    intelligenceWeightInOverall: 0.5,
+    intelligenceInfluence: 0.36,
   },
   {
     id: "limited_equipment",
@@ -189,7 +194,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
     combatMods: { combatSkill: 0.95 },
     volatility: 1.05,
     equipmentFactor: 0.15,
-    intelligenceWeightInOverall: 0.45,
+    intelligenceInfluence: 0.3,
   },
   {
     id: "full_equipment",
@@ -205,7 +210,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
     },
     volatility: 0.9,
     equipmentFactor: 1.35,
-    intelligenceWeightInOverall: 0.45,
+    intelligenceInfluence: 0.26,
   },
   {
     id: "unfamiliar_environment",
@@ -223,7 +228,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
     combatMods: { speed: 0.95, durability: 0.95 },
     volatility: 1.2,
     equipmentFactor: 1,
-    intelligenceWeightInOverall: 0.48,
+    intelligenceInfluence: 0.33,
   },
   {
     id: "tactical_challenge",
@@ -241,7 +246,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
     combatMods: { stamina: 1.15, endurance: 1.2 },
     volatility: 0.95,
     equipmentFactor: 1,
-    intelligenceWeightInOverall: 0.62,
+    intelligenceInfluence: 0.5,
   },
   {
     id: "randomized_conditions",
@@ -257,7 +262,7 @@ export const SCENARIOS: ScenarioDefinition[] = [
     },
     volatility: 1.9,
     equipmentFactor: 1,
-    intelligenceWeightInOverall: 0.45,
+    intelligenceInfluence: 0.3,
   },
 ];
 
@@ -384,10 +389,16 @@ function baseScores(
     };
   }
 
-  const weight = scenario.intelligenceWeightInOverall;
+  // A flat weighted average let a brilliant lightweight out-score a vastly
+  // stronger fighter, so an overall battle is built from the combat score and
+  // a bounded bonus for the sharper mind.
+  const influence = scenario.intelligenceInfluence;
+  const scale = 100 / (100 + 50 * influence);
+  const overall = (combat: number, intel: number) =>
+    (combat + (intel - 50) * influence) * scale;
   return {
-    a: intelA * weight + combatA * (1 - weight) + edgeA * 0.7 + gearA * 0.6,
-    b: intelB * weight + combatB * (1 - weight) + edgeB * 0.7 + gearB * 0.6,
+    a: overall(combatA, intelA) + edgeA * 0.7 + gearA * 0.6,
+    b: overall(combatB, intelB) + edgeB * 0.7 + gearB * 0.6,
   };
 }
 
@@ -442,8 +453,7 @@ function decisiveFactors(
   return factors.slice(0, 3);
 }
 
-function outcomeFor(aScore: number, bScore: number): Outcome {
-  const difference = aScore - bScore;
+function outcomeFor(difference: number): Outcome {
   const magnitude = Math.abs(difference);
   if (magnitude < 1.2) return OUTCOMES.DRAW;
   if (magnitude < 2.2) return OUTCOMES.INCONCLUSIVE;
@@ -469,9 +479,15 @@ function runScenario(
   let inconclusive = 0;
 
   for (let index = 0; index < trialsPerScenario; index += 1) {
-    const aScore = clamp(base.a + gaussian(rng) * scenario.volatility, 0, 100);
-    const bScore = clamp(base.b + gaussian(rng) * scenario.volatility, 0, 100);
-    const outcome = outcomeFor(aScore, bScore);
+    // Noise is applied to the score difference, never to each score separately:
+    // clamping a fighter at 100 otherwise pushed the strongest characters down
+    // on every trial while their opponents fluctuated both ways.
+    const swing = (gaussian(rng) - gaussian(rng)) * scenario.volatility;
+    const difference = base.a - base.b + swing;
+    const midpoint = (base.a + base.b) / 2;
+    const aScore = clamp(midpoint + difference / 2, 0, 100);
+    const bScore = clamp(midpoint - difference / 2, 0, 100);
+    const outcome = outcomeFor(difference);
 
     if (outcome === OUTCOMES.A_WINS) aWins += 1;
     else if (outcome === OUTCOMES.B_WINS) bWins += 1;

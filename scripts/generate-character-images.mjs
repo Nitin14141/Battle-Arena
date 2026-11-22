@@ -40,6 +40,12 @@ const WIKI_SEARCH = {
 };
 
 const WIDTH = 600;
+/**
+ * Wikipedia only serves some files at the 960px rendition: asking for 800px
+ * returns HTTP 400 for a number of portraits, which left those fighters with
+ * no image at all. Always request 960 and never rewrite it back down.
+ */
+const WIKI_WIDTH = 960;
 
 const toUpgrade = (url) => url.replace(/scale-to-width-down\/\d+/, `scale-to-width-down/${WIDTH}`);
 const stripQuery = (url) => url.split("?")[0];
@@ -81,7 +87,7 @@ async function wikipedia(title) {
     redirects: "1",
     prop: "pageimages",
     piprop: "thumbnail",
-    pithumbsize: String(WIDTH),
+    pithumbsize: String(WIKI_WIDTH),
     titles: title,
   }).toString();
   const page = pickPage(await json(endpoint.href));
@@ -100,7 +106,7 @@ async function wikipediaSearch(query) {
     redirects: "1",
     prop: "pageimages",
     piprop: "thumbnail",
-    pithumbsize: String(WIDTH),
+    pithumbsize: String(WIKI_WIDTH),
   }).toString();
   const page = pickPage(await json(endpoint.href));
   if (!page?.thumbnail?.source) return null;

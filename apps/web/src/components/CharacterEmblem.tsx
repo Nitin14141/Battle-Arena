@@ -24,12 +24,15 @@ const SIZES = {
 /**
  * Portrait art is framed differently per source: anime artwork is a head-and-
  * shoulders bust, while wiki page images are often full-body renders or comic
- * covers. Cropping each towards the subject keeps the face visible.
+ * covers. In nearly every case the head sits in the top third, so a square
+ * tile must anchor to the top of the image — a centred or lower crop shows a
+ * chest and legs and the fighter becomes unrecognisable.
  */
 function focusFor(url: string): string {
-  if (url.includes("anilist.co")) return "50% 18%";
-  if (url.includes("wikimedia.org")) return "50% 25%";
-  return "50% 30%";
+  if (url.includes("anilist.co")) return "50% 6%";
+  if (url.includes("wikimedia.org")) return "50% 6%";
+  if (url.includes("wikia.nocookie.net")) return "50% 0%";
+  return "50% 8%";
 }
 
 function initialsFor(name: string): string {
