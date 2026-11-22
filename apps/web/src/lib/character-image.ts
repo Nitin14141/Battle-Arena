@@ -230,12 +230,17 @@ export async function resolveCharacterImage({
   const isHistorical = category === "historical";
   const anime = ANIME_UNIVERSES.test(universe ?? "") || ANIME_UNIVERSES.test(trimmed);
 
+  const wikipediaHit = async () =>
+    (await wikipediaTitle(bareName)) ??
+    (await wikipediaSearch(`${bareName} ${universe ?? ""}`.trim(), bareName)) ??
+    (await wikipediaSearch(bareName, bareName));
+
+  // Real-world figures are looked up on Wikipedia first, but a profile can be
+  // labelled historical by mistake (or be a real name attached to a fictional
+  // character), so a miss here falls through to the wiki and anime sources.
   if (isHistorical) {
-    const hit =
-      (await wikipediaTitle(bareName)) ??
-      (await wikipediaSearch(`${bareName} ${universe ?? ""}`.trim(), bareName)) ??
-      (await wikipediaSearch(bareName, bareName));
-    return remember(hit);
+    const hit = await wikipediaHit();
+    if (hit) return remember(hit);
   }
 
   if (wiki) {
@@ -257,10 +262,5 @@ export async function resolveCharacterImage({
     }
   }
 
-  const hit =
-    (await wikipediaTitle(bareName)) ??
-    (await wikipediaSearch(`${bareName} ${universe ?? ""}`.trim(), bareName)) ??
-    (await wikipediaSearch(bareName, bareName));
-
-  return remember(hit);
+  return remember(await wikipediaHit());
 }
