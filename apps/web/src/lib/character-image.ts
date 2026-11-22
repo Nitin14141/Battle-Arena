@@ -162,6 +162,9 @@ async function fandomSearchImage(wiki: string, query: string): Promise<ResolvedC
   const page = pickPage(await getJson(endpoint.href));
   const url = page?.thumbnail?.source;
   if (!url || !page?.title) return null;
+  // A search can answer with a different character entirely, so only accept a
+  // page whose title actually refers to the requested fighter.
+  if (!sharesSubject(query, page.title)) return null;
   return { url: toUpgrade(url), source: `Fandom · ${page.title}` };
 }
 

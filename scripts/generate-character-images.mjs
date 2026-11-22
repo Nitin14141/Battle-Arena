@@ -145,6 +145,8 @@ async function fandomSearch(wiki, query) {
   }).toString();
   const page = pickPage(await json(endpoint.href));
   if (!page?.thumbnail?.source) return null;
+  // The search fallback can answer about a different character; reject it.
+  if (!matches(query, page.title)) return null;
   return { url: toUpgrade(page.thumbnail.source), source: `Fandom · ${page.title}` };
 }
 
