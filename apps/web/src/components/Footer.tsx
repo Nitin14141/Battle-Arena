@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ENGINE_VERSION, SCENARIOS, TRIALS_PER_SCENARIO } from "@battle-arena/simulation-engine";
 
 const COLUMNS = [
   {
@@ -76,7 +77,9 @@ export function Footer() {
       <div className="border-t border-arena-border/30 px-6 py-6">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 text-xs text-arena-text3 sm:flex-row">
           <span>© {new Date().getFullYear()} Battle Arena. Guest mode — accounts arrive in Phase E.</span>
-          <span className="font-mono">Engine 0.2.0 · 10 scenarios × 10 trials</span>
+          <span className="font-mono">
+            Engine {ENGINE_VERSION} · {SCENARIOS.length} scenarios × {TRIALS_PER_SCENARIO} trials
+          </span>
         </div>
       </div>
     </footer>
