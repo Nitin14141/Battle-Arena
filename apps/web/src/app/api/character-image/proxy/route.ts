@@ -14,6 +14,7 @@ const ALLOWED_HOSTS = new Set([
   "s4.anilist.co",
   "upload.wikimedia.org",
   "thumb.wikimedia.org",
+  "commons.wikimedia.org",
 ]);
 
 const USER_AGENT = "BattleArena/0.2 (character portraits)";

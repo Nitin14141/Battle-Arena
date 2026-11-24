@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AudioToggle } from "@/components/AudioToggle";
 
 const LINKS = [
   { href: "/battle-setup", label: "Fight" },
@@ -51,6 +52,7 @@ export function Navbar() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <AudioToggle />
           <Link
             href="/profile"
             className="hidden rounded-full border border-arena-border px-4 py-2 text-xs font-bold uppercase tracking-widest text-arena-text2 transition-colors hover:border-arena-blue hover:text-white sm:block"

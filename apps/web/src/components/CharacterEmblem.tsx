@@ -107,22 +107,33 @@ export function CharacterEmblem({
   const palette = THEMES[theme] ?? THEMES.steel;
   const [source, setSource] = useState<string | null>(image ?? null);
   const [broken, setBroken] = useState(false);
+  const [usedLookup, setUsedLookup] = useState(false);
 
   useEffect(() => {
     setSource(image ?? null);
     setBroken(false);
+    setUsedLookup(false);
   }, [image]);
 
+  // Resolve a portrait when none was supplied, and retry once through the
+  // resolver when a supplied portrait fails to load — a dead canned URL must
+  // never leave a fighter with initials.
   useEffect(() => {
-    if (image) return;
+    const needsLookup = (!image && !source) || (broken && !usedLookup);
+    if (!needsLookup) return;
     let active = true;
     lookupPortrait(name, universe, category).then((url) => {
-      if (active && url) setSource(url);
+      if (!active) return;
+      setUsedLookup(true);
+      if (url && url !== source) {
+        setSource(url);
+        setBroken(false);
+      }
     });
     return () => {
       active = false;
     };
-  }, [name, universe, category, image]);
+  }, [name, universe, category, image, source, broken, usedLookup]);
 
   const showPortrait = Boolean(source) && !broken;
 

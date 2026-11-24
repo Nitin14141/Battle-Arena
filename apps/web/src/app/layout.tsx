@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { AudioProvider } from "@/components/AudioProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -20,8 +21,21 @@ const socialImage = {
   type: "image/jpeg",
 };
 
+/**
+ * Absolute origin for canonical and social-share URLs. A local APP_URL must
+ * not leak into deployed builds, so hosted deployments derive it from the
+ * platform's own environment instead.
+ */
+function siteOrigin(): string {
+  const configured = process.env.APP_URL?.trim();
+  if (configured && !/localhost|127\.0\.0\.1/.test(configured)) return configured.replace(/\/$/, "");
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+  if (vercel) return `https://${vercel}`;
+  return "http://localhost:3000";
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteOrigin()),
   applicationName: siteName,
   title: {
     default: "Battle Arena | Every Universe. Every Legend. One Battlefield.",
@@ -57,9 +71,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        <Navbar />
-        <div id="main">{children}</div>
-        <Footer />
+        <AudioProvider>
+          <Navbar />
+          <div id="main">{children}</div>
+          <Footer />
+        </AudioProvider>
       </body>
     </html>
   );

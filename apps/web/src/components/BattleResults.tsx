@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type {
   BattleMode,
@@ -12,6 +12,8 @@ import { CharacterEmblem } from "@/components/CharacterEmblem";
 import { characterImageFor } from "@/lib/portraits";
 import { ArenaImage } from "@/components/ui/ArenaImage";
 import { arenaImageFor } from "@/lib/images";
+import { useAudio } from "@/components/AudioProvider";
+import { characterSoundFor } from "@/data/character-sounds";
 
 const MODE_META: Record<BattleMode, { label: string; tagline: string; text: string; bar: string }> = {
   intelligence: {
@@ -171,8 +173,30 @@ function TrialStrip({ mode, index }: { mode: ModeBattleResult; index: number }) 
 export function BattleResults({ result }: { result: BattleRunResult }) {
   const [activeMode, setActiveMode] = useState<BattleMode>(result.modes[0]?.mode ?? "overall");
   const [copied, setCopied] = useState(false);
+  const audio = useAudio();
+  const announced = useRef<string | null>(null);
 
   const mode = result.modes.find((entry) => entry.mode === activeMode) ?? result.modes[0];
+  const winnerCharacter =
+    mode?.overall.winner === "a_wins"
+      ? result.characterA
+      : mode?.overall.winner === "b_wins"
+        ? result.characterB
+        : null;
+  const winnerId = winnerCharacter?.id ?? null;
+  const winnerSound = characterSoundFor(winnerId);
+
+  // Announce each verdict once: "<Fighter> wins." first, then their sting and
+  // victory line.
+  useEffect(() => {
+    if (!winnerCharacter) return;
+    const key = `${result.runId}:${activeMode}:${winnerCharacter.id}`;
+    if (announced.current === key) return;
+    announced.current = key;
+
+    audio.announceVictory(winnerCharacter.id, winnerCharacter.name);
+  }, [audio, winnerCharacter, activeMode, result.runId]);
+
   if (!mode) return null;
 
   const meta = MODE_META[mode.mode];
@@ -222,6 +246,14 @@ export function BattleResults({ result }: { result: BattleRunResult }) {
               <p className="text-[10px] uppercase tracking-[0.3em] text-arena-purple">Fighter A</p>
               <h2 className="font-display text-2xl font-black text-white sm:text-3xl">{result.characterA.name}</h2>
               <p className="text-sm text-arena-text2">{result.characterA.universe}</p>
+              <button
+                type="button"
+                onClick={() => audio.playSting(result.characterA.id)}
+                aria-label={`Play ${result.characterA.name} signature sting`}
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-arena-border/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-arena-text3 transition-colors hover:border-arena-purple hover:text-white"
+              >
+                <span aria-hidden="true">♪</span> Sting
+              </button>
             </div>
           </div>
 
@@ -231,6 +263,15 @@ export function BattleResults({ result }: { result: BattleRunResult }) {
             <p className="mt-1 font-mono text-xs text-arena-text3">
               {mode.overall.aWins}–{mode.overall.bWins} · {mode.overall.totalTrials} trials
             </p>
+            {winnerCharacter && (
+              <button
+                type="button"
+                onClick={() => audio.announceVictory(winnerCharacter.id, winnerCharacter.name)}
+                className="mt-2 rounded-full border border-arena-gold/40 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-arena-gold transition-colors hover:border-arena-gold hover:text-white"
+              >
+                <span aria-hidden="true">🔊</span> Announce win
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-4">
@@ -246,10 +287,54 @@ export function BattleResults({ result }: { result: BattleRunResult }) {
               <p className="text-[10px] uppercase tracking-[0.3em] text-arena-blue">Fighter B</p>
               <h2 className="font-display text-2xl font-black text-white sm:text-3xl">{result.characterB.name}</h2>
               <p className="text-sm text-arena-text2">{result.characterB.universe}</p>
+              <button
+                type="button"
+                onClick={() => audio.playSting(result.characterB.id)}
+                aria-label={`Play ${result.characterB.name} signature sting`}
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-arena-border/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-arena-text3 transition-colors hover:border-arena-blue hover:text-white"
+              >
+                <span aria-hidden="true">♪</span> Sting
+              </button>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Winner's victory line */}
+      {winnerCharacter && winnerSound.quote && (
+        <section className="rounded-3xl border border-arena-gold/30 bg-gradient-to-r from-arena-gold/10 via-arena-surface/50 to-transparent p-6 sm:p-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-arena-gold">Victory line</p>
+              <blockquote className="mt-2 font-display text-xl font-bold leading-snug text-white sm:text-2xl">
+                “{winnerSound.quote}”
+              </blockquote>
+              <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-arena-text3">— {winnerCharacter.name}</p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => audio.announceVictory(winnerId, winnerCharacter.name)}
+                className="rounded-lg border border-arena-border px-3 py-2 text-xs font-semibold text-arena-text2 transition-colors hover:border-arena-gold hover:text-white"
+              >
+                <span aria-hidden="true">🔊</span> Announce again
+              </button>
+              <button
+                type="button"
+                onClick={() => audio.playSting(winnerId)}
+                className="rounded-lg border border-arena-border px-3 py-2 text-xs font-semibold text-arena-text2 transition-colors hover:border-arena-purple hover:text-white"
+              >
+                <span aria-hidden="true">♪</span> Sting
+              </button>
+            </div>
+          </div>
+          <p className="mt-4 text-[11px] leading-relaxed text-arena-text3">
+            Shown as text and spoken by your browser&rsquo;s own speech voice — no recorded voice clips. The
+            announcement opens with “wins”, then plays the winner&rsquo;s sting. Arena sound follows the speaker
+            toggle in the navbar.
+          </p>
+        </section>
+      )}
 
       {/* Mode tabs */}
       <div className="flex flex-wrap gap-2">

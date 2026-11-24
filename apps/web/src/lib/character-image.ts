@@ -41,6 +41,11 @@ const WIDTH = "600";
 const toUpgrade = (url: string) => url.replace(/scale-to-width-down\/\d+/, `scale-to-width-down/${WIDTH}`);
 const stripQuery = (url: string) => url.split("?")[0];
 
+/** Wikimedia Commons accepts a file name and serves a scaled rendition. */
+function commonsFile(file: string): string {
+  return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file.replace(/ /g, "_"))}?width=${WIDTH}`;
+}
+
 function tokens(value: string): string[] {
   return value
     .toLowerCase()
@@ -170,14 +175,28 @@ async function fandomSearchImage(wiki: string, query: string): Promise<ResolvedC
   return { url: toUpgrade(url), source: `Fandom · ${page.title}` };
 }
 
-/** Best-effort franchise wiki for universes that are not in the fixed list. */
-function guessedFandomWiki(universe: string): string | null {
-  const slug = universe
+/**
+ * Best-effort franchise wikis for universes that are not in the fixed list.
+ * Fandom slugs are inconsistent: "Game of Thrones" lives at
+ * gameofthrones.fandom.com while "The Boys" lives at the-boys.fandom.com, so
+ * both the joined and the hyphenated spelling are tried.
+ */
+function guessedFandomWikis(universe: string): string[] {
+  const words = universe
     .toLowerCase()
-    .replace(/\b(series|franchise|universe|comics|manga|anime|novel|novels|the)\b/g, "")
-    .replace(/[^a-z0-9]+/g, "");
-  if (slug.length < 3 || slug.length > 30) return null;
-  return `${slug}.fandom.com`;
+    .replace(/\b(series|franchise|universe|comics|manga|anime|novel|novels)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length === 0) return [];
+  // Some wikis are named after the first word only (The Kingkiller Chronicle →
+  // kingkiller.fandom.com), so that spelling is tried last.
+  const head = words[0] === "the" ? words[1] : words[0];
+  const slugs = [...new Set([words.join("-"), words.join(""), head ?? ""])];
+  return slugs
+    .filter((slug) => slug.length >= 3 && slug.length <= 30)
+    .map((slug) => `${slug}.fandom.com`);
 }
 
 async function anilistImage(term: string): Promise<ResolvedCharacterImage | null> {
@@ -205,6 +224,106 @@ function fandomWikiFor(universe: string | null | undefined): string | null {
   if (!universe) return null;
   const match = FANDOM_WIKIS.find((entry) => entry.universe.test(universe.trim()));
   return match?.wiki ?? null;
+}
+
+interface WikidataHit {
+  id?: string;
+  label?: string;
+  description?: string;
+}
+
+interface WikidataClaim {
+  mainsnak?: { datavalue?: { value?: unknown } };
+}
+
+interface WikidataEntity {
+  labels?: Record<string, { value?: string }>;
+  claims?: Record<string, WikidataClaim[]>;
+}
+
+async function wikidataSearch(term: string): Promise<WikidataHit[]> {
+  const endpoint = new URL("https://www.wikidata.org/w/api.php");
+  endpoint.search = new URLSearchParams({
+    action: "wbsearchentities",
+    format: "json",
+    language: "en",
+    uselang: "en",
+    type: "item",
+    limit: "5",
+    search: term,
+  }).toString();
+  const data = (await getJson(endpoint.href)) as { search?: WikidataHit[] } | null;
+  return data?.search ?? [];
+}
+
+async function wikidataEntities(ids: string[]): Promise<Record<string, WikidataEntity>> {
+  if (ids.length === 0) return {};
+  const endpoint = new URL("https://www.wikidata.org/w/api.php");
+  endpoint.search = new URLSearchParams({
+    action: "wbgetentities",
+    format: "json",
+    ids: ids.slice(0, 10).join("|"),
+    props: "claims|labels",
+    languages: "en",
+  }).toString();
+  const data = (await getJson(endpoint.href)) as { entities?: Record<string, WikidataEntity> } | null;
+  return data?.entities ?? {};
+}
+
+/** P18 (image) values are Wikimedia Commons file names. */
+function imageFiles(entity: WikidataEntity | undefined): string[] {
+  return (entity?.claims?.P18 ?? [])
+    .map((claim) => claim.mainsnak?.datavalue?.value)
+    .filter((value): value is string => typeof value === "string" && value.length > 0);
+}
+
+/** P175 (performer) values are item references such as Q2813921. */
+function performerIds(entity: WikidataEntity | undefined): string[] {
+  return (entity?.claims?.P175 ?? [])
+    .map((claim) => claim.mainsnak?.datavalue?.value)
+    .map((value) =>
+      value && typeof value === "object" && "id" in value ? String((value as { id?: unknown }).id) : null,
+    )
+    .filter((id): id is string => typeof id === "string" && id.startsWith("Q"));
+}
+
+/**
+ * Wikidata portrait, including live-action casting.
+ *
+ * Wiki page images are missing for a lot of characters — especially fighters
+ * from live-action films and series, whose articles are often about the actor
+ * rather than the role. Wikidata links a character to the actor who plays them
+ * (P175), so a portrait of the performer gives those fighters a real face
+ * instead of initials.
+ */
+async function wikidataImage(term: string): Promise<ResolvedCharacterImage | null> {
+  const hits = await wikidataSearch(term);
+  if (hits.length === 0) return null;
+
+  const matching = hits.filter((hit) => hit.id && hit.label && sharesSubject(term, hit.label));
+  const pool = (matching.length > 0 ? matching : hits.slice(0, 1)).filter((hit) => hit.id);
+  if (pool.length === 0) return null;
+
+  const entities = await wikidataEntities(pool.map((hit) => hit.id as string));
+
+  // The character's own picture first.
+  for (const hit of pool) {
+    const [file] = imageFiles(entities[hit.id as string]);
+    if (file) return { url: commonsFile(file), source: `Wikidata · ${hit.label ?? term}` };
+  }
+
+  // Otherwise the actor who plays them.
+  const cast = pool.flatMap((hit) => performerIds(entities[hit.id as string])).slice(0, 4);
+  if (cast.length === 0) return null;
+
+  const performers = await wikidataEntities(cast);
+  for (const id of cast) {
+    const [file] = imageFiles(performers[id]);
+    if (!file) continue;
+    const label = performers[id]?.labels?.en?.value;
+    return { url: commonsFile(file), source: label ? `Actor · ${label}` : "Wikimedia Commons · actor portrait" };
+  }
+  return null;
 }
 
 export interface CharacterImageQuery {
@@ -268,8 +387,7 @@ export async function resolveCharacterImage({
     const hit = (await fandomImage(wiki, bareName)) ?? (await fandomImage(wiki, trimmed));
     if (hit) return remember(hit);
   } else if (universe) {
-    const guessed = guessedFandomWiki(universe);
-    if (guessed) {
+    for (const guessed of guessedFandomWikis(universe)) {
       const hit = await fandomImage(guessed, bareName);
       if (hit) return remember(hit);
     }
@@ -282,6 +400,9 @@ export async function resolveCharacterImage({
       if (hit) return remember(hit);
     }
   }
+
+  const wikidata = await wikidataImage(bareName);
+  if (wikidata) return remember(wikidata);
 
   return remember(await wikipediaHit());
 }
